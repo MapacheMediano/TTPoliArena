@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: poliarena_db
+    environment:
+      POSTGRES_USER: poliarena
+      POSTGRES_PASSWORD: poliarena
+      POSTGRES_DB: poliarena_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - poliarena_pg:/var/lib/postgresql/data
+
+volumes:
+  poliarena_pg:
