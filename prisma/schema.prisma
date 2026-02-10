@@ -16,8 +16,10 @@ enum Role {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  name      String?
   password  String
   role      Role     @default(PLAYER)
+  isActive  Boolean  @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

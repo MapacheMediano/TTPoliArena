@@ -14,14 +14,21 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/material-nextjs": "^7.3.7",
+    "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "bcrypt": "^6.0.0",
+    "iron-session": "^8.0.4",
     "next": "16.1.6",
+    "pg": "^8.18.0",
     "prisma": "^7.3.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
+    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.4",
