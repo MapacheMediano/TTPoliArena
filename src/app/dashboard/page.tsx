@@ -7,6 +7,7 @@ import MyTournaments from '@/components/dashboard/MyTournaments';
 import MyTeam from '@/components/dashboard/MyTeam';
 import QuickStats from '@/components/dashboard/QuickStats';
 import { TournamentData } from '@/components/TournamentCard';
+import { useRouter } from 'next/navigation';
 
 // ============================================
 // DATOS SIMULADOS (mock data)
@@ -84,6 +85,7 @@ const mockTeam = {
 // ============================================
 
 export default function DashboardPage() {
+  const router = useRouter();
   return (
     <Box
       sx={{
@@ -128,8 +130,8 @@ export default function DashboardPage() {
               />
               <MyTeam
                 team={mockTeam}
-                onManageTeam={() => console.log('Gestionar equipo')}
-                onCreateTeam={() => console.log('Crear equipo')}
+                onManageTeam={() => router.push('/teams/1')}
+                onCreateTeam={() => router.push('/teams')}
               />
             </Box>
           </Grid>

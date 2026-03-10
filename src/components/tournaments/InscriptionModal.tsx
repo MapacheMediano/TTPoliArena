@@ -104,10 +104,8 @@ export default function InscriptionModal({
         },
       }}
     >
-      <DialogTitle>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2' }}>
-          Inscribirse al torneo
-        </Typography>
+      <DialogTitle sx={{ fontWeight: 700, color: '#F5F0F2' }}>
+        Inscribirse al torneo
         <Typography variant="body2" color="text.secondary">
           {tournamentName}
         </Typography>
