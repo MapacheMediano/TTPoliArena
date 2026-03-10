@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 export type SessionData = {
   userId?: string;
-  role?: "PLAYER" | "STAFF" | "ADMIN";
+role?: "PLAYER" | "CAPTAIN" | "STAFF" | "ADMIN";
 };
 
 export const sessionOptions: IronSessionOptions = {
