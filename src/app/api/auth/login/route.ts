@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -24,14 +24,15 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, name: true, password: true, role: true, isActive: true },
+    select: { id: true, email: true, password: true, role: true, isActive: true },
   });
 
   if (!user || !user.isActive) {
     return NextResponse.json({ ok: false, error: "Credenciales inválidas" }, { status: 401 });
   }
 
-  const ok = await bcrypt.compare(parsed.data.password, user.password);
+  const ok = await bcrypt.compare(parsed.data.password, user.password!);
+
   if (!ok) {
     return NextResponse.json({ ok: false, error: "Credenciales inválidas" }, { status: 401 });
   }
@@ -43,6 +44,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: { id: user.id, email: user.email, role: user.role },
   });
 }
