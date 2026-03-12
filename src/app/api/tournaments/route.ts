@@ -22,3 +22,35 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(req: Request) {
+  try {
+
+    const body = await req.json();
+
+    const tournament = await prisma.tournament.create({
+      data: {
+        title: body.title,
+        game: body.game,
+        description: body.description,
+        format: body.format,
+        maxPlayers: body.maxPlayers,
+        startDate: new Date(body.startDate),
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      tournament,
+    });
+
+  } catch (error) {
+
+    console.error("POST /api/tournaments error:", error);
+
+    return NextResponse.json(
+      { ok: false, error: "Error creando torneo" },
+      { status: 500 }
+    );
+  }
+}
