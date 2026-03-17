@@ -7,14 +7,15 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  password      String?
-  role          UserRole       @default(PLAYER)
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  PlayerProfile PlayerProfile?
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  password                String?
+  role                    UserRole                 @default(PLAYER)
+  isActive                Boolean                  @default(true)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  PlayerProfile           PlayerProfile?
+  tournamentRegistrations TournamentRegistration[]
 }
 
 model PlayerProfile {
@@ -37,15 +38,28 @@ enum UserRole {
 }
 
 model Tournament {
-  id          String   @id @default(cuid())
-  title       String
-  game        String
-  description String?
-  format      String
-  maxPlayers  Int
-  startDate   DateTime
-  endDate     DateTime?
-  status      String   @default("OPEN")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String                   @id @default(cuid())
+  title         String
+  game          String
+  description   String?
+  format        String
+  maxPlayers    Int
+  startDate     DateTime
+  endDate       DateTime?
+  status        String                   @default("OPEN")
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  registrations TournamentRegistration[]
+}
+
+model TournamentRegistration {
+  id           String   @id @default(cuid())
+  userId       String
+  tournamentId String
+  createdAt    DateTime @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId])
 }
