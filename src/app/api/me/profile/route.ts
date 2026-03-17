@@ -13,37 +13,44 @@ export async function GET() {
       );
     }
 
-    const tournaments = await prisma.tournament.findMany({
+    const user = await prisma.user.findUnique({
       where: {
-        registrations: {
-          some: {
-            userId: session.userId,
-          },
-        },
-      },
-      orderBy: {
-        startDate: "asc",
+        id: session.userId,
       },
       select: {
         id: true,
-        title: true,
-        game: true,
-        description: true,
-        format: true,
-        maxPlayers: true,
-        startDate: true,
-        endDate: true,
-        status: true,
+        email: true,
+        role: true,
+        isActive: true,
         createdAt: true,
+        PlayerProfile: {
+          select: {
+            id: true,
+            userId: true,
+            fullName: true,
+            school: true,
+            gamerTag: true,
+            avatarUrl: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 
+    if (!user) {
+      return NextResponse.json(
+        { ok: false, error: "Usuario no encontrado" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
       ok: true,
-      tournaments,
+      user,
     });
   } catch (error) {
-    console.error("Error en /api/me/tournaments:", error);
+    console.error("Error en /api/me/profile:", error);
 
     return NextResponse.json(
       { ok: false, error: "Error interno del servidor" },
