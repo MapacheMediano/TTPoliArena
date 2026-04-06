@@ -6,21 +6,60 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  password                String?
+  role                    UserRole                 @default(PLAYER)
+  isActive                Boolean                  @default(true)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  PlayerProfile           PlayerProfile?
+  tournamentRegistrations TournamentRegistration[]
+}
 
-enum Role {
+model PlayerProfile {
+  id        String   @id
+  userId    String   @unique
+  fullName  String?
+  school    String?
+  gamerTag  String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
   PLAYER
+  CAPTAIN
   STAFF
   ADMIN
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      Role     @default(PLAYER)
-  isActive  Boolean  @default(true)
+model Tournament {
+  id            String                   @id @default(cuid())
+  title         String
+  game          String
+  description   String?
+  format        String
+  maxPlayers    Int
+  startDate     DateTime
+  endDate       DateTime?
+  status        String                   @default("OPEN")
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  registrations TournamentRegistration[]
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model TournamentRegistration {
+  id           String   @id @default(cuid())
+  userId       String
+  tournamentId String
+  createdAt    DateTime @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId])
 }
