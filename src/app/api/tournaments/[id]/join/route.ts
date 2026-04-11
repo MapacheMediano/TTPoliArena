@@ -52,7 +52,7 @@ export async function POST(_req: Request, { params }: Params) {
     if (existingRegistration) {
       return NextResponse.json(
         { ok: false, error: "Ya estás registrado en este torneo" },
-        { status: 400 }
+        { status: 409 }
       );
     }
 
@@ -80,6 +80,70 @@ export async function POST(_req: Request, { params }: Params) {
     );
   } catch (error) {
     console.error("POST /api/tournaments/[id]/join error:", error);
+
+    return NextResponse.json(
+      { ok: false, error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_req: Request, { params }: Params) {
+  try {
+    const session = await getSession();
+
+    if (!session || !session.userId) {
+      return NextResponse.json(
+        { ok: false, error: "No autenticado" },
+        { status: 401 }
+      );
+    }
+
+    const { id: tournamentId } = await params;
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
+    });
+
+    if (!tournament) {
+      return NextResponse.json(
+        { ok: false, error: "Torneo no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    const existingRegistration =
+      await prisma.tournamentRegistration.findUnique({
+        where: {
+          userId_tournamentId: {
+            userId: session.userId,
+            tournamentId,
+          },
+        },
+      });
+
+    if (!existingRegistration) {
+      return NextResponse.json(
+        { ok: false, error: "No estás registrado en este torneo" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.tournamentRegistration.delete({
+      where: {
+        userId_tournamentId: {
+          userId: session.userId,
+          tournamentId,
+        },
+      },
+    });
+
+    return NextResponse.json(
+      { ok: true, message: "Te saliste del torneo correctamente" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("DELETE /api/tournaments/[id]/join error:", error);
 
     return NextResponse.json(
       { ok: false, error: "Error interno del servidor" },

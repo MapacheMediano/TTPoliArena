@@ -3,15 +3,29 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
-const CreateTournamentSchema = z.object({
-  title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
-  game: z.string().min(2, "El juego es obligatorio"),
-  description: z.string().optional(),
-  format: z.string().min(2, "El formato es obligatorio"),
-  maxPlayers: z.number().int().positive("maxPlayers debe ser mayor a 0"),
-  startDate: z.string().datetime("startDate debe ser una fecha ISO válida"),
-  endDate: z.string().datetime().optional(),
-});
+const CreateTournamentSchema = z
+  .object({
+    title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
+    game: z.string().min(2, "El juego es obligatorio"),
+    description: z.string().optional(),
+    format: z.string().min(2, "El formato es obligatorio"),
+    maxPlayers: z.coerce
+      .number()
+      .int("maxPlayers debe ser entero")
+      .positive("maxPlayers debe ser mayor a 0"),
+    startDate: z.string().datetime("startDate debe ser una fecha ISO válida"),
+    endDate: z.string().datetime("endDate debe ser una fecha ISO válida").optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.endDate) return true;
+      return new Date(data.endDate) >= new Date(data.startDate);
+    },
+    {
+      message: "endDate no puede ser menor que startDate",
+      path: ["endDate"],
+    }
+  );
 
 export async function GET() {
   try {
@@ -47,6 +61,14 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null);
+
+    if (!body) {
+      return NextResponse.json(
+        { ok: false, error: "Body inválido o vacío" },
+        { status: 400 }
+      );
+    }
+
     const parsed = CreateTournamentSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -73,7 +95,10 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(
-      { ok: true, tournament },
+      {
+        ok: true,
+        tournament,
+      },
       { status: 201 }
     );
   } catch (error) {

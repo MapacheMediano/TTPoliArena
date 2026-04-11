@@ -16,6 +16,11 @@ model User {
   updatedAt               DateTime                 @updatedAt
   PlayerProfile           PlayerProfile?
   tournamentRegistrations TournamentRegistration[]
+  createdTournaments      Tournament[]             @relation("TournamentCreator")
+
+  matchesAsPlayer1 Match[] @relation("MatchPlayer1")
+  matchesAsPlayer2 Match[] @relation("MatchPlayer2")
+  matchesAsWinner  Match[] @relation("MatchWinner")
 }
 
 model PlayerProfile {
@@ -49,7 +54,10 @@ model Tournament {
   status        String                   @default("OPEN")
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
+  creatorId     String
+  creator       User                     @relation("TournamentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   registrations TournamentRegistration[]
+  matches       Match[]
 }
 
 model TournamentRegistration {
@@ -58,8 +66,31 @@ model TournamentRegistration {
   tournamentId String
   createdAt    DateTime @default(now())
 
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tournamentId])
+}
+
+model Match {
+  id           String   @id @default(cuid())
+  tournamentId String
+  round        Int
+  position     Int
+  player1Id    String?
+  player2Id    String?
+  winnerId     String?
+  score        String?
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  player1 User? @relation("MatchPlayer1", fields: [player1Id], references: [id])
+  player2 User? @relation("MatchPlayer2", fields: [player2Id], references: [id])
+  winner  User? @relation("MatchWinner", fields: [winnerId], references: [id])
+
+  @@unique([tournamentId, round, position])
+  @@index([tournamentId])
 }
