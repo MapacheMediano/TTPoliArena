@@ -19,10 +19,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { UserData } from './EditRoleModal';
 
 const rolColors: Record<string, { bg: string; text: string }> = {
-  'Jugador': { bg: 'rgba(33, 150, 243, 0.15)', text: '#2196F3' },
-  'Capitán': { bg: 'rgba(212, 168, 75, 0.15)', text: '#D4A84B' },
-  'Organizador': { bg: 'rgba(76, 175, 80, 0.15)', text: '#4CAF50' },
-  'Administrador': { bg: 'rgba(255, 107, 107, 0.15)', text: '#FF6B6B' },
+  'PLAYER':  { bg: 'rgba(33, 150, 243, 0.15)',  text: '#2196F3' },
+  'CAPTAIN': { bg: 'rgba(212, 168, 75, 0.15)',  text: '#D4A84B' },
+  'STAFF':   { bg: 'rgba(76, 175, 80, 0.15)',   text: '#4CAF50' },
+  'ADMIN':   { bg: 'rgba(255, 107, 107, 0.15)', text: '#FF6B6B' },
 };
 
 const estadoColors: Record<string, { bg: string; text: string }> = {
@@ -38,7 +38,7 @@ interface UserTableProps {
   filterRole: string;
   onFilterRoleChange: (role: string) => void;
   onEditRole: (user: UserData) => void;
-  onToggleStatus: (userId: number) => void;
+  onToggleStatus: (userId: string) => void;
 }
 
 export default function UserTable({
