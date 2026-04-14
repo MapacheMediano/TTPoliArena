@@ -23,6 +23,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
+import { logoutUser } from '@/lib/api/auth.service';
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -42,10 +43,16 @@ export default function Navbar({ isLoggedIn = false, userName = '' }: NavbarProp
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    handleMenuClose();
-    // TODO: Limpiar sesión cuando haya backend
+  const handleLogout = async () => {
+  handleMenuClose();
+  try {
+    await logoutUser();
+  } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+  } finally {
     router.push('/login');
+    router.refresh();
+  }
   };
 
   const iniciales = userName
@@ -99,7 +106,7 @@ export default function Navbar({ isLoggedIn = false, userName = '' }: NavbarProp
               <Button
                 sx={{ color: '#C4B0B8', '&:hover': { color: '#F5F0F2' } }}
                 startIcon={<EmojiEventsIcon />}
-                onClick={() => console.log('Ir a torneos')}
+                onClick={() => router.push('/tournaments')}
               >
                 Torneos
               </Button>
