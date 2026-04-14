@@ -33,7 +33,7 @@ const statusColors: Record<string, { bg: string; text: string }> = {
 };
 
 export interface TournamentData {
-  id: number;
+  id: number | string;
   nombre: string;
   juego: string;
   formato: string;

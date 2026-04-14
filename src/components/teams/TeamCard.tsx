@@ -15,7 +15,7 @@ import StarIcon from '@mui/icons-material/Star';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 export interface TeamMember {
-  id: number;
+  id: number | string;
   nombre: string;
   nickname: string;
   rol: 'Capitán' | 'Miembro';
@@ -23,7 +23,7 @@ export interface TeamMember {
 }
 
 export interface TeamData {
-  id: number;
+  id: number | string;
   nombre: string;
   tag: string;
   juego: string;

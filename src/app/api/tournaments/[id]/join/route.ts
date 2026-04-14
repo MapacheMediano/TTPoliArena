@@ -3,26 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 type Params = {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 };
 
 export async function POST(_req: Request, { params }: Params) {
   try {
+    const { id } = await params;
     const session = await getSession();
 
-    if (!session || !session.userId) {
+    if (!session.userId) {
       return NextResponse.json(
         { ok: false, error: "No autenticado" },
         { status: 401 }
       );
     }
 
-    const { id: tournamentId } = await params;
-
     const tournament = await prisma.tournament.findUnique({
-      where: { id: tournamentId },
+      where: { id },
+      select: {
+        id: true,
+        status: true,
+        maxPlayers: true,
+        _count: { select: { registrations: true } },
+      },
     });
 
     if (!tournament) {
@@ -34,43 +37,38 @@ export async function POST(_req: Request, { params }: Params) {
 
     if (tournament.status !== "OPEN") {
       return NextResponse.json(
-        { ok: false, error: "El torneo no está abierto para registros" },
+        { ok: false, error: "El torneo no está abierto para inscripciones" },
         { status: 400 }
       );
     }
 
-    const existingRegistration =
-      await prisma.tournamentRegistration.findUnique({
-        where: {
-          userId_tournamentId: {
-            userId: session.userId,
-            tournamentId,
-          },
-        },
-      });
-
-    if (existingRegistration) {
+    if (tournament._count.registrations >= tournament.maxPlayers) {
       return NextResponse.json(
-        { ok: false, error: "Ya estás registrado en este torneo" },
+        { ok: false, error: "El torneo ya está lleno" },
         { status: 400 }
       );
     }
 
-    const registrationsCount = await prisma.tournamentRegistration.count({
-      where: { tournamentId },
+    const existing = await prisma.tournamentRegistration.findUnique({
+      where: {
+        userId_tournamentId: {
+          userId: session.userId,
+          tournamentId: id,
+        },
+      },
     });
 
-    if (registrationsCount >= tournament.maxPlayers) {
+    if (existing) {
       return NextResponse.json(
-        { ok: false, error: "El torneo ya alcanzó el límite de jugadores" },
-        { status: 400 }
+        { ok: false, error: "Ya estás inscrito en este torneo" },
+        { status: 409 }
       );
     }
 
     const registration = await prisma.tournamentRegistration.create({
       data: {
         userId: session.userId,
-        tournamentId,
+        tournamentId: id,
       },
     });
 
@@ -80,7 +78,6 @@ export async function POST(_req: Request, { params }: Params) {
     );
   } catch (error) {
     console.error("POST /api/tournaments/[id]/join error:", error);
-
     return NextResponse.json(
       { ok: false, error: "Error interno del servidor" },
       { status: 500 }

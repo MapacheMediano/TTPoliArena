@@ -21,6 +21,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import BadgeIcon from '@mui/icons-material/Badge';
 import SchoolIcon from '@mui/icons-material/School';
 import { UserProfile } from './ProfileView';
+import { updateMyProfile } from '@/lib/api/auth.service';
 
 const unidadesAcademicas = [
   'ESCOM - Escuela Superior de Cómputo',
@@ -112,32 +113,32 @@ export default function ProfileEditForm({ user, onSave, onCancel }: ProfileEditF
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+  if (!validate()) return;
 
-    setLoading(true);
-    try {
-      // TODO: Conectar con el backend
-      // const response = await fetch('/api/users/profile', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
+  setLoading(true);
+  try {
+    const result = await updateMyProfile({
+      fullName: formData.nombre,
+      gamerTag: formData.nickname,
+      school: formData.unidadAcademica,
+    });
 
-      // Simulación
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Perfil actualizado:', formData);
-      setSuccess(true);
-
-      setTimeout(() => {
-        onSave(formData);
-      }, 1000);
-    } catch (err) {
-      setErrors({ general: 'Error al guardar. Intenta de nuevo.' });
-    } finally {
-      setLoading(false);
+    if (!result.ok) {
+      setErrors({ general: result.error ?? 'Error al guardar.' });
+      return;
     }
-  };
+
+    setSuccess(true);
+    setTimeout(() => {
+      onSave(formData);
+    }, 1000);
+
+  } catch (err) {
+    setErrors({ general: 'Error de conexión. Intenta de nuevo.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Paper
