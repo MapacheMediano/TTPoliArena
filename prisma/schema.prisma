@@ -54,6 +54,7 @@ model Tournament {
   createdAt     DateTime                 @default(now())
   updatedAt     DateTime                 @updatedAt
   registrations TournamentRegistration[]
+  matches Match[]
 }
 
 model TournamentRegistration {
@@ -77,6 +78,9 @@ model Team {
   updatedAt   DateTime     @updatedAt
   captain     User         @relation("TeamCaptain", fields: [captainId], references: [id])
   members     TeamMember[]
+  matchesAsTeamA Match[] @relation("MatchTeamA")
+  matchesAsTeamB Match[] @relation("MatchTeamB")
+  matchesWon     Match[] @relation("MatchWinner")
 }
 
 model TeamMember {
@@ -88,4 +92,22 @@ model TeamMember {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
+}
+model Match {
+  id           String     @id @default(cuid())
+  tournamentId String
+  teamAId      String
+  teamBId      String
+  scoreA       Int        @default(0)
+  scoreB       Int        @default(0)
+  winnerId     String?
+  round        String
+  status       String     @default("PENDING")
+  playedAt     DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamA        Team       @relation("MatchTeamA", fields: [teamAId], references: [id])
+  teamB        Team       @relation("MatchTeamB", fields: [teamBId], references: [id])
+  winner       Team?      @relation("MatchWinner", fields: [winnerId], references: [id])
 }
