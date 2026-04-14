@@ -16,18 +16,35 @@ const CreateTournamentSchema = z.object({
 export async function GET() {
   try {
     const tournaments = await prisma.tournament.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({
-      ok: true,
-      tournaments,
-    });
+    // Actualiza status automáticamente según fechas
+    const now = new Date();
+    const updated = await Promise.all(
+      tournaments.map(async (t) => {
+        let newStatus = t.status;
+
+        if (t.status === "OPEN" && new Date(t.startDate) <= now) {
+          newStatus = "IN_PROGRESS";
+        }
+        if (t.endDate && new Date(t.endDate) <= now && t.status !== "FINISHED") {
+          newStatus = "FINISHED";
+        }
+
+        if (newStatus !== t.status) {
+          return prisma.tournament.update({
+            where: { id: t.id },
+            data: { status: newStatus },
+          });
+        }
+        return t;
+      })
+    );
+
+    return NextResponse.json({ ok: true, tournaments: updated });
   } catch (error) {
     console.error("GET /api/tournaments error:", error);
-
     return NextResponse.json(
       { ok: false, error: "Error interno del servidor" },
       { status: 500 }

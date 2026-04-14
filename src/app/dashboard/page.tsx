@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Box, Container, Typography, Grid, CircularProgress } from '@mui/material';
+import { Box, Container, Typography, Grid, CircularProgress, Alert, Button } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import ProfileCard from '@/components/dashboard/ProfileCard';
@@ -128,8 +128,21 @@ export default function DashboardPage() {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#F5F0F2', mb: 0.5 }}>
-            ¡Hola, {userForCard.nombre.split(' ')[0]}! 👋
+            ¡Hola, {profile?.PlayerProfile?.gamerTag ?? profile?.PlayerProfile?.fullName ?? profile?.email?.split('@')[0]}! 👋
           </Typography>
+          {!profile?.PlayerProfile && (
+            <Alert
+              severity="info"
+              sx={{ mb: 3 }}
+              action={
+                <Button color="inherit" size="small" onClick={() => router.push('/profile')}>
+                  Completar
+                </Button>
+              }
+            >
+              Tu perfil está incompleto. Agrega tu nombre y nickname para que otros jugadores te reconozcan.
+            </Alert>
+            )}
           <Typography variant="body1" color="text.secondary">
             Bienvenido a tu panel de PoliArena
           </Typography>
