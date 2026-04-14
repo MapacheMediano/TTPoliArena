@@ -22,6 +22,7 @@ import Navbar from '@/components/Navbar';
 import StepBasicInfo from '@/components/tournaments/StepBasicInfo';
 import StepRulesConfig from '@/components/tournaments/StepRulesConfig';
 import StepReview from '@/components/tournaments/StepReview';
+import { createTournament } from '@/lib/api/tournaments.service';
 
 // Nombres de los pasos del stepper
 const steps = ['Información básica', 'Reglas y configuración', 'Revisar y publicar'];
@@ -139,34 +140,34 @@ export default function CreateTournamentPage() {
 
   // Publicar torneo
   const handlePublish = async () => {
-    setLoading(true);
-    try {
-      // TODO: Conectar con el backend cuando esté listo
-      // const response = await fetch('/api/tournaments', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     ...formData,
-      //     estado: 'Abierto',
-      //   }),
-      // });
+  setLoading(true);
+  try {
+    const result = await createTournament({
+      title: formData.nombre,
+      game: formData.juego,
+      description: formData.descripcion || undefined,
+      format: formData.formato,
+      maxPlayers: formData.maxEquipos,
+      startDate: new Date(formData.fechaInicio).toISOString(),
+      endDate: formData.fechaFin ? new Date(formData.fechaFin).toISOString() : undefined,
+    });
 
-      // Simulación
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      console.log('Torneo creado:', formData);
-      setShowSuccess(true);
-
-      // Redirigir después de 2 segundos
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
-    } catch (err) {
-      console.error('Error al crear torneo:', err);
-    } finally {
-      setLoading(false);
+    if (!result.ok) {
+      setErrors({ general: result.error ?? 'Error al crear el torneo.' });
+      return;
     }
-  };
+
+    setShowSuccess(true);
+    setTimeout(() => {
+      router.push('/tournaments');
+    }, 2000);
+
+  } catch (err) {
+    setErrors({ general: 'Error de conexión. Intenta de nuevo.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Guardar como borrador
   const handleSaveDraft = async () => {

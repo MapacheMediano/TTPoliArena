@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 export async function GET() {
@@ -12,11 +13,34 @@ export async function GET() {
       );
     }
 
+    const tournaments = await prisma.tournament.findMany({
+      where: {
+        registrations: {
+          some: {
+            userId: session.userId,
+          },
+        },
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+      select: {
+        id: true,
+        title: true,
+        game: true,
+        description: true,
+        format: true,
+        maxPlayers: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
     return NextResponse.json({
       ok: true,
-      message: "Usuario autenticado correctamente",
-      userId: session.userId,
-      role: session.role,
+      tournaments,
     });
   } catch (error) {
     console.error("Error en /api/me/tournaments:", error);

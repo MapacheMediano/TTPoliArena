@@ -48,33 +48,20 @@ export default function InviteMemberModal({
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+  if (!validate()) return;
 
-    setLoading(true);
-    setError('');
+  setLoading(true);
+  setError('');
 
-    try {
-      // TODO: Conectar con el backend
-      // const response = await fetch('/api/teams/invite', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ teamId: ..., correo }),
-      // });
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Invitación enviada a:', correo);
-      setSuccess(true);
-
-      setTimeout(() => {
-        onInvited(correo);
-        handleClose();
-      }, 1500);
-    } catch (err) {
-      setError('Error al enviar la invitación. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    await onInvited(correo);
+    setSuccess(true);
+  } catch (err) {
+    setError('Error al agregar el miembro. Intenta de nuevo.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleClose = () => {
     setCorreo('');

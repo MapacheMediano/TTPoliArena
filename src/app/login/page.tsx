@@ -21,6 +21,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import Navbar from '@/components/Navbar';
+import { loginUser } from '@/lib/api/auth.service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,39 +43,50 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.correo || !formData.password) {
-      setError('Todos los campos son requeridos.');
+  if (!formData.correo || !formData.password) {
+    setError('Todos los campos son requeridos.');
+    return;
+  }
+
+  if (!formData.correo.endsWith('@alumno.ipn.mx')) {
+    setError('Debes usar tu correo institucional (@alumno.ipn.mx).');
+    return;
+  }
+
+  setLoading(true);
+  setError('');
+
+  try {
+    const result = await loginUser({
+      email: formData.correo,
+      password: formData.password,
+    });
+
+    if (!result.ok) {
+      setError(result.error ?? 'Credenciales incorrectas.');
       return;
     }
 
-    if (!formData.correo.endsWith('@alumno.ipn.mx')) {
-      setError('Debes usar tu correo institucional (@alumno.ipn.mx).');
-      return;
+    // Login exitoso — redirige según rol
+    switch (result.user?.role) {
+      case 'ADMIN':
+        router.push('/admin');
+        break;
+      case 'STAFF':
+        router.push('/dashboard');
+        break;
+      default:
+        router.push('/dashboard');
     }
 
-    setLoading(true);
-    try {
-      // TODO: Conectar con el backend cuando esté listo
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      // Simulación
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Datos de login:', formData);
-      alert('¡Inicio de sesión exitoso! (Simulado - sin backend)');
-      // router.push('/dashboard'); // Descomentar cuando exista el dashboard
-    } catch (err) {
-      setError('Credenciales incorrectas. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    setError('Error de conexión. Intenta de nuevo.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box
