@@ -1,4 +1,4 @@
-import { getIronSession, type IronSessionOptions } from "iron-session";
+import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
 export type SessionData = {
@@ -6,7 +6,7 @@ export type SessionData = {
 role?: "PLAYER" | "CAPTAIN" | "STAFF" | "ADMIN";
 };
 
-export const sessionOptions: IronSessionOptions = {
+export const sessionOptions: SessionOptions = {
   password: process.env.SESSION_PASSWORD as string,
   cookieName: "poliarena_session",
   cookieOptions: {

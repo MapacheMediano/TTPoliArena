@@ -200,15 +200,8 @@ export default function LoginPage() {
             </Button>
 
             <Box sx={{ textAlign: 'center', mb: 2 }}>
-              <Link
-                component="button"
-                type="button"
-                variant="body2"
-                sx={{
-                  color: '#D4A84B',
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' },
-                }}
+              <Link component="button" type="button" variant="body2"
+                onClick={() => router.push('/forgot-password')}
               >
                 ¿Olvidaste tu contraseña?
               </Link>

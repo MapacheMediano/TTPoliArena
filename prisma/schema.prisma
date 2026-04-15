@@ -20,6 +20,11 @@ model User {
   teamMembers TeamMember[]
   reportedMatches  Match[] @relation("MatchReporter")
   validatedMatches Match[] @relation("MatchValidator")
+  emailVerified      Boolean  @default(false)
+  verifyToken        String?
+  verifyTokenExpiry  DateTime?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
 }
 
 model PlayerProfile {

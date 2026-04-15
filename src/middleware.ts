@@ -1,22 +1,26 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rutas públicas — siempre permitidas
   if (PUBLIC_ROUTES.some((route) => pathname === route)) {
     return NextResponse.next();
   }
 
-  // Rutas de API — las manejan sus propios guards
   if (pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  // Verifica la cookie de sesión
   const session = request.cookies.get("poliarena_session");
 
   if (!session) {

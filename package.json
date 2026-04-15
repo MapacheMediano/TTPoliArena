@@ -19,15 +19,18 @@
     "bcrypt": "^6.0.0",
     "iron-session": "^8.0.4",
     "next": "16.1.6",
+    "nodemailer": "^8.0.5",
     "pg": "^8.18.0",
     "prisma": "^7.3.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "resend": "^6.11.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
