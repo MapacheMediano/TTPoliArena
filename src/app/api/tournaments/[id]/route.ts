@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isTeamGame } from "@/lib/gameConfig";
 
-type Params = {
-  params: Promise<{ id: string }>;
-};
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
   try {
@@ -22,11 +21,7 @@ export async function GET(_req: Request, { params }: Params) {
                 id: true,
                 email: true,
                 PlayerProfile: {
-                  select: {
-                    fullName: true,
-                    gamerTag: true,
-                    school: true,
-                  },
+                  select: { fullName: true, gamerTag: true, school: true },
                 },
               },
             },
@@ -42,7 +37,43 @@ export async function GET(_req: Request, { params }: Params) {
       );
     }
 
-    return NextResponse.json({ ok: true, tournament });
+    // Si es juego de equipo, busca el equipo de cada capitán inscrito
+    let teamsInscribed: any[] = [];
+    if (isTeamGame(tournament.game)) {
+      teamsInscribed = await prisma.team.findMany({
+        where: {
+          captainId: { in: tournament.registrations.map(r => r.userId) },
+          game: tournament.game,
+        },
+        include: {
+          captain: {
+            select: {
+              id: true,
+              email: true,
+              PlayerProfile: { select: { fullName: true, gamerTag: true } },
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  PlayerProfile: { select: { fullName: true, gamerTag: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      tournament,
+      teamsInscribed,
+      isTeamGame: isTeamGame(tournament.game),
+    });
   } catch (error) {
     console.error("GET /api/tournaments/[id] error:", error);
     return NextResponse.json(

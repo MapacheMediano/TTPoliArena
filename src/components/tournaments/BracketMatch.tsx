@@ -10,13 +10,13 @@ export interface MatchTeam {
 }
 
 export interface MatchData {
-  id: number;
+  id: number | string;
   round: number;
   position: number;
   teamA: MatchTeam | null;
   teamB: MatchTeam | null;
-  status: 'pendiente' | 'en_curso' | 'finalizado';
-  fecha: string;
+  status: string;
+  fecha?: string;
 }
 
 interface BracketMatchProps {
@@ -163,7 +163,7 @@ export default function BracketMatch({ match, onClick }: BracketMatchProps) {
         }}
       >
         <Typography variant="caption" sx={{ color: '#C4B0B8', fontSize: '0.6rem' }}>
-          {match.fecha}
+          {match.fecha ?? 'Por programar'}
         </Typography>
         <Box
           sx={{

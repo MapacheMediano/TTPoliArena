@@ -104,13 +104,40 @@ export default function TournamentsPage() {
       if (filters.juego !== 'Todos' && t.juego !== filters.juego) return false;
       if (filters.estado !== 'Todos' && t.estado !== filters.estado) return false;
       if (filters.modalidad !== 'Todas' && t.modalidad !== filters.modalidad) return false;
-      if (filters.formato !== 'Todos' && t.formato !== filters.formato) return false;
+      if (filters.formato !== 'Todos') {
+  const normalizar = (str: string) =>
+    str.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_');
+  if (normalizar(t.formato) !== normalizar(filters.formato)) return false;
+}
       if (tabValue === 1 && t.estado !== 'Abierto') return false;
       if (tabValue === 2 && t.estado !== 'En curso') return false;
       if (tabValue === 3 && t.estado !== 'Finalizado') return false;
       return true;
     });
   }, [filters, tabValue, tournaments]);
+  const formatoMap: Record<string, string> = {
+  'eliminacion_simple': 'Eliminación simple',
+  'eliminacion_doble': 'Eliminación doble',
+  'round_robin': 'Round Robin',
+  'grupos': 'Fase de grupos',
+};
+
+function mapTournament(t: TournamentFromAPI): TournamentData {
+  return {
+    id: t.id,
+    nombre: t.title,
+    juego: t.game,
+    formato: formatoMap[t.format] ?? t.format,
+    fechaInicio: new Date(t.startDate).toLocaleDateString('es-MX'),
+    estado: statusMap[t.status] ?? t.status,
+    equiposInscritos: 0,
+    maxEquipos: t.maxPlayers,
+    modalidad: 'Online',
+  };
+}
 
   const counts = useMemo(() => ({
     todos:       tournaments.length,

@@ -18,6 +18,8 @@ model User {
   tournamentRegistrations TournamentRegistration[]
   captainOf   Team[]       @relation("TeamCaptain")
   teamMembers TeamMember[]
+  reportedMatches  Match[] @relation("MatchReporter")
+  validatedMatches Match[] @relation("MatchValidator")
 }
 
 model PlayerProfile {
@@ -94,20 +96,27 @@ model TeamMember {
   @@unique([teamId, userId])
 }
 model Match {
-  id           String     @id @default(cuid())
+  id           String    @id @default(cuid())
   tournamentId String
-  teamAId      String
-  teamBId      String
-  scoreA       Int        @default(0)
-  scoreB       Int        @default(0)
+  teamAId      String?
+  teamBId      String?
+  scoreA       Int?
+  scoreB       Int?
   winnerId     String?
-  round        String
-  status       String     @default("PENDING")
-  playedAt     DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  teamA        Team       @relation("MatchTeamA", fields: [teamAId], references: [id])
-  teamB        Team       @relation("MatchTeamB", fields: [teamBId], references: [id])
-  winner       Team?      @relation("MatchWinner", fields: [winnerId], references: [id])
+  round        Int
+  position     Int
+  status       String    @default("PENDING")
+  evidenceUrl  String?
+  reportedBy   String?
+  validatedBy  String?
+  bracket      String    @default("WINNERS")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamA        Team?       @relation("MatchTeamA", fields: [teamAId], references: [id])
+  teamB        Team?       @relation("MatchTeamB", fields: [teamBId], references: [id])
+  winner       Team?       @relation("MatchWinner", fields: [winnerId], references: [id])
+  reporter     User?       @relation("MatchReporter", fields: [reportedBy], references: [id])
+  validator    User?       @relation("MatchValidator", fields: [validatedBy], references: [id])
 }

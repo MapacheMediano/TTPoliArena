@@ -49,6 +49,28 @@ export async function createTournament(
     return { ok: false, error: "Error al crear torneo" };
   }
 }
+export interface TeamInscribed {
+  id: string;
+  name: string;
+  tag: string;
+  game: string;
+  captainId: string;
+  captain: {
+    id: string;
+    email: string;
+    PlayerProfile: { fullName: string | null; gamerTag: string | null } | null;
+  };
+  members: {
+    id: string;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      PlayerProfile: { fullName: string | null; gamerTag: string | null } | null;
+    };
+  }[];
+}
+
 export interface TournamentDetailResponse {
   ok: boolean;
   tournament?: TournamentFromAPI & {
@@ -67,6 +89,8 @@ export interface TournamentDetailResponse {
       };
     }[];
   };
+  teamsInscribed?: TeamInscribed[];
+  isTeamGame?: boolean;
   error?: string;
 }
 
@@ -87,16 +111,82 @@ export async function getTournamentById(
   }
 }
 
+
 // POST /api/tournaments/[id]/join
 export async function joinTournament(
-  id: string
+  id: string,
+  teamId?: string
 ): Promise<JoinTournamentResponse> {
   try {
     return await apiClient<JoinTournamentResponse>(
       `/api/tournaments/${id}/join`,
-      { method: "POST" }
+      { method: "POST", body: teamId ? { teamId } : {} }
     );
   } catch (error) {
     return { ok: false, error: "Error al inscribirse" };
+  }
+}
+
+// ─── BRACKETS ─────────────────────────────────────────────
+
+export interface MatchTeam {
+  id: string;
+  name: string;
+  tag: string;
+}
+
+export interface BracketMatch {
+  id: string;
+  tournamentId: string;
+  teamAId: string | null;
+  teamBId: string | null;
+  scoreA: number | null;
+  scoreB: number | null;
+  winnerId: string | null;
+  round: number;
+  position: number;
+  status: string;
+  bracket: string;
+  evidenceUrl: string | null;
+  teamA: MatchTeam | null;
+  teamB: MatchTeam | null;
+  winner: MatchTeam | null;
+}
+
+export interface BracketsResponse {
+  ok: boolean;
+  matches?: BracketMatch[];
+  tournament?: { id: string; title: string; format: string; status: string };
+  error?: string;
+}
+
+export interface GenerateBracketResponse {
+  ok: boolean;
+  matches?: BracketMatch[];
+  error?: string;
+}
+
+// GET /api/tournaments/[id]/brackets
+export async function getTournamentBrackets(
+  id: string
+): Promise<BracketsResponse> {
+  try {
+    return await apiClient<BracketsResponse>(`/api/tournaments/${id}/brackets`);
+  } catch (error) {
+    return { ok: false, error: "Error al obtener brackets" };
+  }
+}
+
+// POST /api/tournaments/[id]/generate-bracket
+export async function generateBracket(
+  id: string
+): Promise<GenerateBracketResponse> {
+  try {
+    return await apiClient<GenerateBracketResponse>(
+      `/api/tournaments/${id}/generate-bracket`,
+      { method: "POST" }
+    );
+  } catch (error) {
+    return { ok: false, error: "Error al generar bracket" };
   }
 }

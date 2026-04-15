@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   Box, Container, Typography, Button, Chip,
   Paper, Grid, CircularProgress, Alert, Divider, Avatar,
+  TextField, MenuItem,
 } from '@mui/material';
 import { useRouter, useParams } from 'next/navigation';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -11,10 +12,13 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import Navbar from '@/components/Navbar';
 import { getTournamentById, joinTournament } from '@/lib/api/tournaments.service';
 import { getCurrentUser } from '@/lib/api/auth.service';
-import type { TournamentDetailResponse } from '@/lib/api/tournaments.service';
+import { getMyTeams } from '@/lib/api/teams.service';
+import type { TournamentDetailResponse, TeamInscribed } from '@/lib/api/tournaments.service';
+import type { Team } from '@/lib/api/teams.service';
 
 const statusMap: Record<string, { label: string; color: string }> = {
   OPEN:        { label: 'Abierto',      color: '#4CAF50' },
@@ -23,17 +27,29 @@ const statusMap: Record<string, { label: string; color: string }> = {
   UPCOMING:    { label: 'Próximamente', color: '#2196F3' },
 };
 
+const formatoMap: Record<string, string> = {
+  'eliminacion_simple': 'Eliminación simple',
+  'eliminacion_doble': 'Eliminación doble',
+  'round_robin': 'Round Robin',
+  'grupos': 'Fase de grupos',
+};
+
 export default function TournamentDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
   const [tournament, setTournament] = useState<TournamentDetailResponse['tournament'] | null>(null);
+  const [isTeamGame, setIsTeamGame] = useState(false);
+  const [teamsInscribed, setTeamsInscribed] = useState<TeamInscribed[]>([]);
+  const [myTeams, setMyTeams] = useState<Team[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState('');
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
   const [joinSuccess, setJoinSuccess] = useState(false);
   const [userId, setUserId] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
@@ -50,6 +66,7 @@ export default function TournamentDetailPage() {
         }
 
         setUserId(meRes.user.id);
+        setUserRole(meRes.user.role);
         setUserName(meRes.user.email.split('@')[0]);
 
         if (!tournamentRes.ok || !tournamentRes.tournament) {
@@ -58,6 +75,21 @@ export default function TournamentDetailPage() {
         }
 
         setTournament(tournamentRes.tournament);
+        setIsTeamGame(tournamentRes.isTeamGame ?? false);
+        setTeamsInscribed(tournamentRes.teamsInscribed ?? []);
+
+        // Si es juego de equipo, carga los equipos del usuario
+        if (tournamentRes.isTeamGame) {
+          const teamsRes = await getMyTeams();
+          if (teamsRes.ok && teamsRes.teams) {
+            // Solo equipos donde es capitán y del mismo juego
+            const eligibleTeams = teamsRes.teams.filter(
+              t => t.captainId === meRes.user!.id &&
+              t.game.toLowerCase() === tournamentRes.tournament!.game.toLowerCase()
+            );
+            setMyTeams(eligibleTeams);
+          }
+        }
       } catch (error) {
         router.push('/tournaments');
       } finally {
@@ -70,8 +102,16 @@ export default function TournamentDetailPage() {
   const handleJoin = async () => {
     setJoining(true);
     setJoinError('');
+
+    // Validación para juegos de equipo
+    if (isTeamGame && !selectedTeamId) {
+      setJoinError('Debes seleccionar un equipo para inscribirte');
+      setJoining(false);
+      return;
+    }
+
     try {
-      const result = await joinTournament(id);
+      const result = await joinTournament(id, isTeamGame ? selectedTeamId : undefined);
       if (!result.ok) {
         setJoinError(result.error ?? 'Error al inscribirse');
         return;
@@ -80,6 +120,7 @@ export default function TournamentDetailPage() {
       const updated = await getTournamentById(id);
       if (updated.ok && updated.tournament) {
         setTournament(updated.tournament);
+        setTeamsInscribed(updated.teamsInscribed ?? []);
       }
     } finally {
       setJoining(false);
@@ -99,15 +140,26 @@ export default function TournamentDetailPage() {
   const status = statusMap[tournament.status] ?? { label: tournament.status, color: '#9E9E9E' };
   const isAlreadyJoined = tournament.registrations.some(r => r.userId === userId);
   const isFull = tournament.registrations.length >= tournament.maxPlayers;
+  const isCaptain = userRole === 'CAPTAIN' || userRole === 'ADMIN';
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
       <Navbar isLoggedIn={true} userName={userName} />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/tournaments')} sx={{ color: '#C4B0B8', mb: 2 }}>
-          Volver a torneos
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/tournaments')} sx={{ color: '#C4B0B8' }}>
+            Volver a torneos
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<AccountTreeIcon />}
+            onClick={() => router.push('/tournaments/' + id + '/brackets')}
+            sx={{ borderColor: 'rgba(212, 168, 75, 0.5)', color: '#D4A84B', '&:hover': { borderColor: '#D4A84B', backgroundColor: 'rgba(212, 168, 75, 0.1)' } }}
+          >
+            Ver brackets
+          </Button>
+        </Box>
 
         <Grid container spacing={3}>
           {/* Columna principal */}
@@ -134,12 +186,12 @@ export default function TournamentDetailPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <GroupsIcon sx={{ color: '#C4B0B8', fontSize: 18 }} />
                   <Typography variant="body2" color="text.secondary">
-                    {tournament.registrations.length}/{tournament.maxPlayers} inscritos
+                    {isTeamGame ? teamsInscribed.length : tournament.registrations.length}/{tournament.maxPlayers} inscritos
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <EmojiEventsIcon sx={{ color: '#C4B0B8', fontSize: 18 }} />
-                  <Typography variant="body2" color="text.secondary">{tournament.format}</Typography>
+                  <Typography variant="body2" color="text.secondary">{formatoMap[tournament.format] ?? tournament.format}</Typography>
                 </Box>
               </Box>
 
@@ -156,32 +208,62 @@ export default function TournamentDetailPage() {
             {/* Lista de inscritos */}
             <Paper elevation={0} sx={{ p: 3, backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2', mb: 2 }}>
-                Participantes ({tournament.registrations.length})
+                {isTeamGame ? 'Equipos inscritos' : 'Participantes'} ({isTeamGame ? teamsInscribed.length : tournament.registrations.length})
               </Typography>
-              {tournament.registrations.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  Aún no hay participantes inscritos.
-                </Typography>
-              ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {tournament.registrations.map((reg) => (
-                    <Box key={reg.id} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1.5, borderRadius: 2, backgroundColor: 'rgba(26, 10, 16, 0.4)' }}>
-                      <Avatar sx={{ width: 36, height: 36, background: 'linear-gradient(135deg, #7B1E3B, #D4A84B)', fontSize: '0.85rem', fontWeight: 700 }}>
-                        {(reg.user.PlayerProfile?.fullName ?? reg.user.email)[0].toUpperCase()}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#F5F0F2' }}>
-                          {reg.user.PlayerProfile?.fullName ?? reg.user.email.split('@')[0]}
-                        </Typography>
-                        {reg.user.PlayerProfile?.gamerTag && (
-                          <Typography variant="caption" sx={{ color: '#D4A84B' }}>
-                            @{reg.user.PlayerProfile.gamerTag}
-                          </Typography>
-                        )}
+
+              {isTeamGame ? (
+                teamsInscribed.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">Aún no hay equipos inscritos.</Typography>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {teamsInscribed.map((team) => (
+                      <Box key={team.id} sx={{ p: 2, borderRadius: 2, backgroundColor: 'rgba(26, 10, 16, 0.4)', border: '1px solid rgba(123, 30, 59, 0.15)' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Avatar sx={{ width: 36, height: 36, background: 'linear-gradient(135deg, #D4A84B, #E0C078)', color: '#1A0A10', fontWeight: 800, fontSize: '0.75rem' }}>
+                            {team.tag}
+                          </Avatar>
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: '#F5F0F2' }}>
+                              {team.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#D4A84B' }}>
+                              Capitán: {team.captain.PlayerProfile?.gamerTag ?? team.captain.email.split('@')[0]}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={team.members.length + ' miembros'}
+                            size="small"
+                            sx={{ backgroundColor: 'rgba(123, 30, 59, 0.2)', color: '#C4B0B8', fontSize: '0.7rem' }}
+                          />
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
-                </Box>
+                    ))}
+                  </Box>
+                )
+              ) : (
+                tournament.registrations.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">Aún no hay participantes inscritos.</Typography>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {tournament.registrations.map((reg) => (
+                      <Box key={reg.id} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1.5, borderRadius: 2, backgroundColor: 'rgba(26, 10, 16, 0.4)' }}>
+                        <Avatar sx={{ width: 36, height: 36, background: 'linear-gradient(135deg, #7B1E3B, #D4A84B)', fontSize: '0.85rem', fontWeight: 700 }}>
+                          {(reg.user.PlayerProfile?.fullName ?? reg.user.email)[0].toUpperCase()}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#F5F0F2' }}>
+                            {reg.user.PlayerProfile?.fullName ?? reg.user.email.split('@')[0]}
+                          </Typography>
+                          {reg.user.PlayerProfile?.gamerTag && (
+                            <Typography variant="caption" sx={{ color: '#D4A84B' }}>
+                              @{reg.user.PlayerProfile.gamerTag}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )
               )}
             </Paper>
           </Grid>
@@ -207,8 +289,8 @@ export default function TournamentDetailPage() {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
                 {[
-                  { label: 'Formato', value: tournament.format },
-                  { label: 'Cupo', value: `${tournament.registrations.length}/${tournament.maxPlayers}` },
+                  { label: 'Formato', value: formatoMap[tournament.format] ?? tournament.format },
+                  { label: 'Cupo', value: (isTeamGame ? teamsInscribed.length : tournament.registrations.length) + '/' + tournament.maxPlayers },
                   { label: 'Estado', value: status.label },
                   { label: 'Inicio', value: new Date(tournament.startDate).toLocaleDateString('es-MX') },
                   ...(tournament.endDate ? [{ label: 'Fin', value: new Date(tournament.endDate).toLocaleDateString('es-MX') }] : []),
@@ -220,13 +302,50 @@ export default function TournamentDetailPage() {
                 ))}
               </Box>
 
+              {/* Selector de equipo para juegos de equipo */}
+              {isTeamGame && tournament.status === 'OPEN' && !isAlreadyJoined && !joinSuccess && (
+                myTeams.length === 0 ? (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    No tienes equipos de {tournament.game}. Crea uno para poder inscribirte.
+                  </Alert>
+                ) : (
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Selecciona tu equipo"
+                    value={selectedTeamId}
+                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                    sx={{ mb: 2 }}
+                    helperText="Solo puedes inscribir equipos donde eres capitán"
+                  >
+                    {myTeams.map((team) => (
+                      <MenuItem key={team.id} value={team.id}>
+                        [{team.tag}] {team.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )
+              )}
+
+              {/* Mensaje para juegos de equipo sin ser capitán */}
+              {isTeamGame && !isCaptain && tournament.status === 'OPEN' && !isAlreadyJoined && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Solo el capitán de un equipo puede inscribirse a este torneo.
+                </Alert>
+              )}
+
               <Button
                 fullWidth
                 variant="contained"
                 size="large"
                 startIcon={<HowToRegIcon />}
                 onClick={handleJoin}
-                disabled={joining || isAlreadyJoined || isFull || tournament.status !== 'OPEN' || joinSuccess}
+                disabled={
+                  joining || isAlreadyJoined || isFull ||
+                  tournament.status !== 'OPEN' || joinSuccess ||
+                  (isTeamGame && myTeams.length === 0)
+                }
                 sx={{ py: 1.5, fontWeight: 700 }}
               >
                 {joining ? 'Inscribiendo...' : isAlreadyJoined || joinSuccess ? 'Ya inscrito' : 'Inscribirme'}

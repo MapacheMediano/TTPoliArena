@@ -18,6 +18,8 @@ import { getAdminUsers, updateUserRole, toggleUserStatus } from '@/lib/api/admin
 import { getCurrentUser } from '@/lib/api/auth.service';
 import type { AdminUser } from '@/lib/api/admin.service';
 import type { UserRole } from '@/lib/api/types/auth.types';
+import { getAllTournaments } from '@/lib/api/tournaments.service';
+import { getMyTeams } from '@/lib/api/teams.service';
 
 // Mapea AdminUser del backend al formato que espera UserTable
 function mapUser(u: AdminUser): UserData {
@@ -73,18 +75,24 @@ export default function AdminPage() {
 
         setUserName(meRes.user.email.split('@')[0]);
 
-        const usersRes = await getAdminUsers();
+        const [usersRes, tournamentsRes, teamsRes] = await Promise.all([
+          getAdminUsers(),
+          getAllTournaments(),
+          getMyTeams(),
+        ]);
         if (usersRes.ok && usersRes.users) {
           setRawUsers(usersRes.users);
           setUsers(usersRes.users.map(mapUser));
           setStats({
-            totalUsuarios: usersRes.users.length,
-            totalTorneos: 0,
-            torneosActivos: 0,
-            totalEquipos: 0,
-            staffCount: usersRes.users.filter(u => u.role === 'STAFF' || u.role === 'ADMIN').length,
-            resultadosPendientes: 0,
-          });
+          totalUsuarios: usersRes.users.length,
+          totalTorneos: tournamentsRes.tournaments?.length ?? 0,
+          torneosActivos: tournamentsRes.tournaments?.filter(
+            t => t.status === 'IN_PROGRESS' || t.status === 'OPEN'
+          ).length ?? 0,
+          totalEquipos: teamsRes.teams?.length ?? 0,
+          staffCount: usersRes.users.filter(u => u.role === 'STAFF' || u.role === 'ADMIN').length,
+          resultadosPendientes: 0,
+        });
         }
       } catch (error) {
         console.error('Error cargando admin:', error);
