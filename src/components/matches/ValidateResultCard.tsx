@@ -22,7 +22,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import PersonIcon from '@mui/icons-material/Person';
 
 export interface PendingResult {
-  id: number;
+  id: string;
   torneo: string;
   ronda: string;
   fecha: string;
@@ -39,8 +39,8 @@ export interface PendingResult {
 
 interface ValidateResultCardProps {
   result: PendingResult;
-  onApprove: (id: number) => void;
-  onReject: (id: number, motivo: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string, motivo: string) => void;
 }
 
 export default function ValidateResultCard({

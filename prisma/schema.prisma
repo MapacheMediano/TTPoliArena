@@ -112,6 +112,7 @@ model Match {
   bracket      String    @default("WINNERS")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  playedAt     DateTime?
 
   tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   teamA        Team?       @relation("MatchTeamA", fields: [teamAId], references: [id])

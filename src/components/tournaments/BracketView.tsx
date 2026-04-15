@@ -4,13 +4,16 @@ import { Box, Typography, Chip } from '@mui/material';
 import BracketMatch, { MatchData } from './BracketMatch';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
+
+
 interface BracketViewProps {
   matches: MatchData[];
   totalRounds: number;
   format: string;
+  onMatchClick?: (matchId: string) => void;
 }
 
-export default function BracketView({ matches, totalRounds, format }: BracketViewProps) {
+export default function BracketView({ matches, totalRounds, format, onMatchClick }: BracketViewProps) {
   // Nombres de las rondas
   const getRoundName = (round: number): string => {
     if (round === totalRounds) return 'Final';
@@ -139,7 +142,7 @@ export default function BracketView({ matches, totalRounds, format }: BracketVie
 
                       <BracketMatch
                         match={match}
-                        onClick={() => console.log('Ver partida:', match.id)}
+                        onClick={() => onMatchClick?.(match.id.toString())}
                       />
 
                       {/* Línea conectora derecha */}
@@ -180,8 +183,8 @@ export default function BracketView({ matches, totalRounds, format }: BracketVie
             </Typography>
             {(() => {
               const finalMatch = matches.find(
-                (m) => m.round === totalRounds && m.status === 'finalizado'
-              );
+  (m) => m.round === totalRounds && (m.status === 'finalizado' || m.status === 'finished')
+);
               const winner =
                 finalMatch?.teamA?.isWinner
                   ? finalMatch.teamA

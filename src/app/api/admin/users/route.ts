@@ -38,7 +38,11 @@ export async function GET() {
       },
       orderBy: { createdAt: "desc" },
     });
+    // Agrega conteo de equipos al response
+    const totalEquipos = await prisma.team.count();
+    const pendingMatches = await prisma.match.count({ where: { status: "REPORTED" } });
 
+    return NextResponse.json({ ok: true, users, totalEquipos, pendingMatches });
     return NextResponse.json({ ok: true, users });
   } catch (error) {
     console.error("GET /api/admin/users error:", error);

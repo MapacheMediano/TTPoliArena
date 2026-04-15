@@ -21,6 +21,7 @@ import type { UserRole } from '@/lib/api/types/auth.types';
 import { getAllTournaments } from '@/lib/api/tournaments.service';
 import { getMyTeams } from '@/lib/api/teams.service';
 
+
 // Mapea AdminUser del backend al formato que espera UserTable
 function mapUser(u: AdminUser): UserData {
   return {
@@ -89,9 +90,9 @@ export default function AdminPage() {
           torneosActivos: tournamentsRes.tournaments?.filter(
             t => t.status === 'IN_PROGRESS' || t.status === 'OPEN'
           ).length ?? 0,
-          totalEquipos: teamsRes.teams?.length ?? 0,
+          totalEquipos: (usersRes as any).totalEquipos ?? 0,
           staffCount: usersRes.users.filter(u => u.role === 'STAFF' || u.role === 'ADMIN').length,
-          resultadosPendientes: 0,
+          resultadosPendientes: (usersRes as any).pendingMatches ?? 0,
         });
         }
       } catch (error) {
@@ -180,7 +181,16 @@ export default function AdminPage() {
         <Box sx={{ mb: 4 }}>
           <AdminStats stats={stats} />
         </Box>
-
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Paper elevation={0} onClick={() => router.push('/matches/validate')}
+            sx={{ p: 2.5, backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 2, '&:hover': { border: '1px solid #FF6B6B40', transform: 'translateY(-2px)' } }}>
+            <FactCheckIcon sx={{ fontSize: 28, color: '#FF6B6B' }} />
+            <Box>
+              <Typography variant="body1" sx={{ color: '#F5F0F2', fontWeight: 600 }}>Validar resultados</Typography>
+              <Typography variant="caption" color="text.secondary">{stats.resultadosPendientes} pendientes</Typography>
+            </Box>
+          </Paper>
+        </Grid>
         <Grid container spacing={2} sx={{ mb: 4 }}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Paper elevation={0} onClick={() => router.push('/tournaments/create')}

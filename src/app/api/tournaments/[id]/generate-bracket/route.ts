@@ -196,7 +196,39 @@ export async function POST(_req: Request, { params }: Params) {
 
     // Guarda todos los partidos
     await prisma.match.createMany({ data: matches });
+        // Avanza automáticamente los byes a la siguiente ronda
+       // Avanza automáticamente los byes a la siguiente ronda
+const byeMatches = await prisma.match.findMany({
+  where: { tournamentId: id, status: "BYE" },
+});
+console.log('Bye matches encontrados:', byeMatches.length);
+console.log('Bye matches data:', JSON.stringify(byeMatches, null, 2));
+for (const byeMatch of byeMatches) {
+  const winnerId = byeMatch.teamAId; // en bye siempre teamA es el que avanza
+  if (!winnerId) continue;
 
+  const nextRound = byeMatch.round + 1;
+  const nextPosition = Math.ceil(byeMatch.position / 2);
+
+  const nextMatch = await prisma.match.findFirst({
+    where: {
+      tournamentId: id,
+      bracket: byeMatch.bracket,
+      round: nextRound,
+      position: nextPosition,
+    },
+  });
+
+  if (nextMatch) {
+    const isSlotA = byeMatch.position % 2 === 1;
+    await prisma.match.update({
+      where: { id: nextMatch.id },
+      data: isSlotA
+        ? { teamA: { connect: { id: winnerId } } }
+        : { teamB: { connect: { id: winnerId } } },
+    });
+  }
+} 
     // Actualiza el status del torneo
     await prisma.tournament.update({
       where: { id },

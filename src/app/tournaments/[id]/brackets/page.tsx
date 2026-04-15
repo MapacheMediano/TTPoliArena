@@ -20,7 +20,6 @@ const formatoMap: Record<string, string> = {
   'round_robin': 'Round Robin',
 };
 
-// Convierte BracketMatch al formato que espera BracketView
 function mapMatch(m: BracketMatch) {
   return {
     id: m.id,
@@ -89,7 +88,6 @@ export default function BracketsPage() {
     try {
       const result = await generateBracket(id);
       if (result.ok && result.matches) {
-        setMatches(result.matches);
         const bracketsRes = await getTournamentBrackets(id);
         if (bracketsRes.ok) {
           setMatches(bracketsRes.matches ?? []);
@@ -114,7 +112,6 @@ export default function BracketsPage() {
   const canManage = userRole === 'ADMIN' || userRole === 'STAFF';
   const hasBracket = matches.length > 0;
 
-  // Calcula total de rondas para BracketView
   const maxRound = hasBracket
     ? Math.max(...matches.filter(m => m.bracket === 'WINNERS').map(m => m.round))
     : 0;
@@ -136,7 +133,6 @@ export default function BracketsPage() {
           Volver al torneo
         </Button>
 
-        {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
@@ -174,7 +170,6 @@ export default function BracketsPage() {
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        {/* Contenido */}
         {!hasBracket ? (
           <Paper elevation={0} sx={{ p: 6, textAlign: 'center', backgroundColor: 'rgba(42, 21, 32, 0.5)', border: '1px solid rgba(123, 30, 59, 0.2)' }}>
             <AccountTreeIcon sx={{ fontSize: 64, color: '#C4B0B8', opacity: 0.5, mb: 2 }} />
@@ -193,6 +188,7 @@ export default function BracketsPage() {
               matches={mappedMatches}
               totalRounds={maxRound}
               format={formatoMap[tournament?.format ?? ''] ?? tournament?.format ?? ''}
+              onMatchClick={(matchId) => router.push('/matches/' + matchId + '/report')}
             />
           </Paper>
         )}
