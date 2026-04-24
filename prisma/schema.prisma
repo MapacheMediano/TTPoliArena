@@ -37,6 +37,7 @@ model PlayerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discord   String?
 }
 
 enum UserRole {

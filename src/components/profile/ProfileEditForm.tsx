@@ -67,6 +67,7 @@ export default function ProfileEditForm({ user, onSave, onCancel }: ProfileEditF
     nickname: user.nickname,
     unidadAcademica: user.unidadAcademica,
     juegosFavoritos: [...user.juegosFavoritos],
+    discord: user.discord ?? '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -108,6 +109,9 @@ export default function ProfileEditForm({ user, onSave, onCancel }: ProfileEditF
     if (!formData.unidadAcademica) {
       newErrors.unidadAcademica = 'Selecciona tu unidad académica';
     }
+    if (!formData.discord?.trim()) {
+      newErrors.discord = 'El Discord es obligatorio para contacto del staff';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -121,6 +125,7 @@ export default function ProfileEditForm({ user, onSave, onCancel }: ProfileEditF
       fullName: formData.nombre,
       gamerTag: formData.nickname,
       school: formData.unidadAcademica,
+      discord: formData.discord,
     });
 
     if (!result.ok) {
@@ -242,6 +247,22 @@ export default function ProfileEditForm({ user, onSave, onCancel }: ProfileEditF
           </MenuItem>
         ))}
       </TextField>
+      <TextField
+  fullWidth
+  label="Discord (required)"
+  value={formData.discord}
+  onChange={(e) => handleChange('discord', e.target.value)}
+  placeholder="usuario#1234 o usuario"
+  helperText="Tu usuario de Discord para que el staff pueda contactarte"
+  sx={{ mb: 2.5 }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <BadgeIcon sx={{ color: '#C4B0B8' }} />
+      </InputAdornment>
+    ),
+  }}
+/>
 
       {/* Juegos favoritos */}
       <Typography variant="subtitle2" sx={{ color: '#D4A84B', fontWeight: 600, mb: 1 }}>

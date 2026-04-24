@@ -8,6 +8,7 @@ const UpdateProfileSchema = z.object({
   school: z.string().trim().min(1).max(100).optional(),
   gamerTag: z.string().trim().min(1).max(50).optional(),
   avatarUrl: z.string().trim().url().max(500).optional(),
+  discord: z.string().trim().max(50).optional(),
 });
 
 export async function GET() {
@@ -103,6 +104,7 @@ export async function PUT(req: Request) {
         ...(data.school !== undefined && { school: data.school }),
         ...(data.gamerTag !== undefined && { gamerTag: data.gamerTag }),
         ...(data.avatarUrl !== undefined && { avatarUrl: data.avatarUrl }),
+        ...(data.discord !== undefined && { discord: data.discord }),
         updatedAt: new Date(),
       },
       create: {
@@ -113,6 +115,7 @@ export async function PUT(req: Request) {
         gamerTag: data.gamerTag,
         avatarUrl: data.avatarUrl,
         updatedAt: new Date(),
+        discord: data.discord,
       },
       select: {
         id: true,
@@ -123,6 +126,7 @@ export async function PUT(req: Request) {
         avatarUrl: true,
         createdAt: true,
         updatedAt: true,
+        discord: true,
       },
     });
 

@@ -51,6 +51,7 @@ export interface PlayerProfile {
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  discord: string | null;
 }
 
 export interface UserProfile {
@@ -73,6 +74,7 @@ export interface UpdateProfileRequest {
   school?: string;
   gamerTag?: string;
   avatarUrl?: string;
+  discord?: string;
 }
 
 export interface UpdateProfileResponse {

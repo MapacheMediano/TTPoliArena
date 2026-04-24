@@ -18,6 +18,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import GroupsIcon from '@mui/icons-material/Groups';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import StarIcon from '@mui/icons-material/Star';
+import ChatIcon from '@mui/icons-material/Chat';
 
 export interface UserProfile {
   nombre: string;
@@ -33,6 +34,7 @@ export interface UserProfile {
   partidasJugadas: number;
   victorias: number;
   fechaRegistro: string;
+  discord?: string;
 }
 
 interface ProfileViewProps {
@@ -253,6 +255,13 @@ export default function ProfileView({ user, onEdit }: ProfileViewProps) {
           label="Miembro desde"
           value={user.fechaRegistro}
         />
+        {user.discord && (
+          <InfoRow
+            icon={<ChatIcon sx={{ fontSize: 18 }} />}
+            label="Discord"
+            value={user.discord}
+          />
+        )}
 
         <Divider sx={{ borderColor: 'rgba(123, 30, 59, 0.2)', my: 2 }} />
 

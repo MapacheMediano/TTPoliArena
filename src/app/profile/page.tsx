@@ -45,6 +45,7 @@ export default function ProfilePage() {
           nickname: u.PlayerProfile?.gamerTag ?? 'Sin nickname',
           correo: u.email,
           unidadAcademica: u.PlayerProfile?.school ?? '',
+          discord: u.PlayerProfile?.discord ?? '',
           rol: u.role,
           equipo: equipoNombre,
   equipoTag: equipoTag,
