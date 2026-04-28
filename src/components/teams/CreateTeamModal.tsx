@@ -123,10 +123,10 @@ export default function CreateTeamModal({ open, onClose, onCreated }: CreateTeam
         },
       }}
     >
-      <DialogTitle>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2' }}>
-          Crear nuevo equipo
-        </Typography>
+    <DialogTitle>
+      <Typography component="span" variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2', display: 'block' }}>
+        Crear nuevo equipo
+      </Typography>
         <Typography variant="body2" color="text.secondary">
           Tú serás el capitán del equipo automáticamente
         </Typography>

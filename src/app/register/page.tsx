@@ -23,6 +23,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import BadgeIcon from '@mui/icons-material/Badge';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import Navbar from '@/components/Navbar';
+import { registerUser } from '@/lib/api/auth.service';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,51 +57,51 @@ export default function RegisterPage() {
 
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Validaciones
-    if (!formData.nombre || !formData.correo || !formData.password || !formData.confirmPassword) {
-      setError('Todos los campos obligatorios deben ser llenados.');
+  if (!formData.nombre || !formData.correo || !formData.password || !formData.confirmPassword) {
+    setError('Todos los campos obligatorios deben ser llenados.');
+    return;
+  }
+
+  if (!validarCorreo(formData.correo)) {
+    setError('Debes usar tu correo institucional (@alumno.ipn.mx).');
+    return;
+  }
+
+  if (formData.password.length < 8) {
+    setError('La contraseña debe tener al menos 8 caracteres.');
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    setError('Las contraseñas no coinciden.');
+    return;
+  }
+
+  setLoading(true);
+  setError('');
+
+  try {
+    const result = await registerUser({
+      email: formData.correo,
+      password: formData.password,
+    });
+
+    if (!result.ok) {
+      setError(result.error ?? 'Error al registrar. Intenta de nuevo.');
       return;
     }
 
-    if (!validarCorreo(formData.correo)) {
-      setError('Debes usar tu correo institucional (@alumno.ipn.mx).');
-      return;
-    }
+    // Registro exitoso — va directo al dashboard
+    router.push('/dashboard');
 
-    if (formData.password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden.');
-      return;
-    }
-
-    // Simular registro (aquí irá la llamada al backend después)
-    setLoading(true);
-    try {
-      // TODO: Conectar con el backend cuando esté listo
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      // Simulación: espera 1 segundo y "registra"
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Datos de registro:', formData);
-      alert('¡Registro exitoso! (Simulado - sin backend)');
-      router.push('/login');
-    } catch (err) {
-      setError('Error al registrar. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    setError('Error de conexión. Intenta de nuevo.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box

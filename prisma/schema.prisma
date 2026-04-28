@@ -36,10 +36,12 @@ model PlayerProfile {
 }
 
 enum UserRole {
-  PLAYER
-  CAPTAIN
-  STAFF
-  ADMIN
+  PLAYER  @map("PLAYER")
+  CAPTAIN @map("CAPTAIN")
+  STAFF   @map("STAFF")
+  ADMIN   @map("ADMIN")
+
+  @@map("UserRole")
 }
 
 model Tournament {
@@ -93,4 +95,26 @@ model Match {
 
   @@unique([tournamentId, round, position])
   @@index([tournamentId])
+}
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  tag         String       @unique
+  game        String
+  captainId   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  captain     User         @relation("TeamCaptain", fields: [captainId], references: [id])
+  members     TeamMember[]
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
 }
