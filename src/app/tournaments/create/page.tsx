@@ -23,6 +23,8 @@ import StepBasicInfo from '@/components/tournaments/StepBasicInfo';
 import StepRulesConfig from '@/components/tournaments/StepRulesConfig';
 import StepReview from '@/components/tournaments/StepReview';
 import { createTournament } from '@/lib/api/tournaments.service';
+import { getCurrentUser } from '@/lib/api/auth.service';
+import { useEffect } from 'react';
 
 // Nombres de los pasos del stepper
 const steps = ['Información básica', 'Reglas y configuración', 'Revisar y publicar'];
@@ -57,6 +59,17 @@ export default function CreateTournamentPage() {
   // Snackbar de éxito
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+  useEffect(() => {
+  async function load() {
+    const meRes = await getCurrentUser();
+    if (!meRes.user) { router.push('/login'); return; }
+    setUserName(meRes.user.email.split('@')[0]);
+    setUserRole(meRes.user.role);
+  }
+  load();
+}, [router]);
 
   // Manejar cambios en cualquier campo
   const handleChange = (field: string, value: string | number) => {
@@ -218,7 +231,7 @@ export default function CreateTournamentPage() {
           'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
       }}
     >
-      <Navbar isLoggedIn={true} userName="Kevin Díaz" />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole} />
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         {/* Título de la página */}

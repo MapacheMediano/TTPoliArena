@@ -23,6 +23,7 @@ export default function ReportMatchPage() {
   const [success, setSuccess] = useState(false);
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -34,6 +35,7 @@ export default function ReportMatchPage() {
         }
         setUserId(meRes.user.id);
         setUserName(meRes.user.email.split('@')[0]);
+        setUserRole(meRes.user.role);
 
         const matchRes = await getMatchById(id);
         if (!matchRes.ok || !matchRes.match) {
@@ -99,7 +101,7 @@ export default function ReportMatchPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Button

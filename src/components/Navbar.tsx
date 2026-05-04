@@ -24,13 +24,14 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Badge from '@mui/material/Badge';
 import { logoutUser } from '@/lib/api/auth.service';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 interface NavbarProps {
   isLoggedIn?: boolean;
   userName?: string;
+  role?: string;
 }
-
-export default function Navbar({ isLoggedIn = false, userName = '' }: NavbarProps) {
+export default function Navbar({ isLoggedIn = false, userName = '', role = '' }: NavbarProps) {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -161,6 +162,22 @@ export default function Navbar({ isLoggedIn = false, userName = '' }: NavbarProp
                   </ListItemIcon>
                   <Typography variant="body2">Dashboard</Typography>
                 </MenuItem>
+                {/* Solo visible para ADMIN y STAFF */}
+                {(role === 'ADMIN' || role === 'STAFF') && (
+                  <MenuItem
+                    onClick={() => {
+                      handleMenuClose();
+                      router.push('/admin');
+                    }}
+                  >
+                    <ListItemIcon>
+                      <AdminPanelSettingsIcon sx={{ color: '#D4A84B' }} />
+                    </ListItemIcon>
+                    <Typography variant="body2" sx={{ color: '#D4A84B', fontWeight: 600 }}>
+                      Panel de Admin
+                    </Typography>
+                  </MenuItem>
+                )}
                 <MenuItem
                   onClick={() => {
                     handleMenuClose();

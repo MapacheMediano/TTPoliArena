@@ -144,7 +144,7 @@ export default function TournamentDetailPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>

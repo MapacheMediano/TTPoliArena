@@ -17,6 +17,7 @@ export default function ValidateResultsPage() {
   const [results, setResults] = useState<PendingResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -38,6 +39,7 @@ export default function ValidateResultsPage() {
         }
 
         setUserName(meRes.user.email.split('@')[0]);
+        setUserRole(meRes.user.role);
 
         const res = await apiClient<{ ok: boolean; matches: any[] }>('/api/matches/pending');
         if (res.ok && res.matches) {
@@ -106,7 +108,7 @@ export default function ValidateResultsPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>

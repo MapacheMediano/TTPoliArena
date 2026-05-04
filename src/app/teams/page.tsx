@@ -42,6 +42,7 @@ export default function TeamsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -53,6 +54,7 @@ export default function TeamsPage() {
         }
         setUserName(meRes.user.email.split('@')[0]);
         setUserId(meRes.user.id);
+        setUserRole(meRes.user.role);
 
         const teamsRes = await getMyTeams();
         if (teamsRes.ok && teamsRes.teams) {
@@ -100,7 +102,7 @@ export default function TeamsPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Button

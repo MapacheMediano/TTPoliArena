@@ -4,14 +4,12 @@ import { getSession } from "@/lib/session";
 
 type Params = { params: Promise<{ id: string }> };
 
-// Utilidad: siguiente potencia de 2
 function nextPowerOf2(n: number): number {
   let p = 1;
   while (p < n) p *= 2;
   return p;
 }
 
-// Mezcla aleatoria (Fisher-Yates)
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -30,7 +28,6 @@ export async function POST(_req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
     }
 
-    // Solo ADMIN o STAFF pueden generar brackets
     const currentUser = await prisma.user.findUnique({
       where: { id: session.userId },
       select: { role: true },
@@ -56,14 +53,12 @@ export async function POST(_req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "El bracket ya fue generado" }, { status: 400 });
     }
 
-    // Obtiene los equipos inscritos
-    // Obtiene equipos de los capitanes inscritos del mismo juego
-        const teams = await prisma.team.findMany({
-        where: {
-            captainId: { in: tournament.registrations.map(r => r.userId) },
-            game: tournament.game,
-        },
-        });
+    const teams = await prisma.team.findMany({
+      where: {
+        captainId: { in: tournament.registrations.map(r => r.userId) },
+        game: tournament.game,
+      },
+    });
 
     if (teams.length < 2) {
       return NextResponse.json(
@@ -77,61 +72,6 @@ export async function POST(_req: Request, { params }: Params) {
     const matches: any[] = [];
 
     if (format === "eliminacion_simple") {
-      // Eliminación simple
-      const slots = nextPowerOf2(shuffledTeams.length);
-      const totalRounds = Math.log2(slots);
-
-      // Ronda 1 — empareja equipos
-      for (let i = 0; i < slots / 2; i++) {
-        const teamA = shuffledTeams[i * 2] ?? null;
-        const teamB = shuffledTeams[i * 2 + 1] ?? null;
-        matches.push({
-          tournamentId: id,
-          teamAId: teamA?.id ?? null,
-          teamBId: teamB?.id ?? null,
-          winnerId: !teamB ? teamA?.id : null, // bye automático
-          round: 1,
-          position: i + 1,
-          status: !teamB ? "BYE" : "PENDING",
-          bracket: "WINNERS",
-        });
-      }
-
-      // Rondas siguientes — slots vacíos
-      for (let r = 2; r <= totalRounds; r++) {
-        const matchesInRound = slots / Math.pow(2, r);
-        for (let i = 0; i < matchesInRound; i++) {
-          matches.push({
-            tournamentId: id,
-            teamAId: null,
-            teamBId: null,
-            round: r,
-            position: i + 1,
-            status: "PENDING",
-            bracket: "WINNERS",
-          });
-        }
-      }
-
-    } else if (format === "round_robin") {
-      // Round Robin — todos contra todos
-      let position = 1;
-      for (let i = 0; i < shuffledTeams.length; i++) {
-        for (let j = i + 1; j < shuffledTeams.length; j++) {
-          matches.push({
-            tournamentId: id,
-            teamAId: shuffledTeams[i].id,
-            teamBId: shuffledTeams[j].id,
-            round: 1,
-            position: position++,
-            status: "PENDING",
-            bracket: "ROUND_ROBIN",
-          });
-        }
-      }
-
-    } else if (format === "eliminacion_doble") {
-      // Eliminación doble — winners bracket igual a simple
       const slots = nextPowerOf2(shuffledTeams.length);
       const totalRounds = Math.log2(slots);
 
@@ -165,9 +105,48 @@ export async function POST(_req: Request, { params }: Params) {
         }
       }
 
-      // Losers bracket — rondas iniciales
-      const loserRounds = (totalRounds - 1) * 2;
-      for (let r = 1; r <= loserRounds; r++) {
+    } else if (format === "eliminacion_doble") {
+      const slots = nextPowerOf2(shuffledTeams.length);
+      const wRounds = Math.log2(slots); // rondas del winners
+
+      // Winners bracket
+      for (let i = 0; i < slots / 2; i++) {
+        const teamA = shuffledTeams[i * 2] ?? null;
+        const teamB = shuffledTeams[i * 2 + 1] ?? null;
+        matches.push({
+          tournamentId: id,
+          teamAId: teamA?.id ?? null,
+          teamBId: teamB?.id ?? null,
+          winnerId: !teamB ? teamA?.id : null,
+          round: 1,
+          position: i + 1,
+          status: !teamB ? "BYE" : "PENDING",
+          bracket: "WINNERS",
+        });
+      }
+
+      for (let r = 2; r <= wRounds; r++) {
+        const matchesInRound = slots / Math.pow(2, r);
+        for (let i = 0; i < matchesInRound; i++) {
+          matches.push({
+            tournamentId: id,
+            teamAId: null,
+            teamBId: null,
+            round: r,
+            position: i + 1,
+            status: "PENDING",
+            bracket: "WINNERS",
+          });
+        }
+      }
+
+      // Losers bracket
+      // Ronda L1: losers de W1 se enfrentan entre sí
+      // Ronda L2: ganadores de L1 vs losers de W2
+      // etc.
+      const lRounds = (wRounds - 1) * 2;
+      for (let r = 1; r <= lRounds; r++) {
+        // Número de partidos en cada ronda del losers
         const matchesInRound = Math.max(1, slots / Math.pow(2, Math.ceil(r / 2) + 1));
         for (let i = 0; i < matchesInRound; i++) {
           matches.push({
@@ -182,7 +161,7 @@ export async function POST(_req: Request, { params }: Params) {
         }
       }
 
-      // Gran final
+      // Gran Final
       matches.push({
         tournamentId: id,
         teamAId: null,
@@ -192,44 +171,58 @@ export async function POST(_req: Request, { params }: Params) {
         status: "PENDING",
         bracket: "GRAND_FINAL",
       });
+
+    } else if (format === "round_robin") {
+      let position = 1;
+      for (let i = 0; i < shuffledTeams.length; i++) {
+        for (let j = i + 1; j < shuffledTeams.length; j++) {
+          matches.push({
+            tournamentId: id,
+            teamAId: shuffledTeams[i].id,
+            teamBId: shuffledTeams[j].id,
+            round: 1,
+            position: position++,
+            status: "PENDING",
+            bracket: "ROUND_ROBIN",
+          });
+        }
+      }
     }
 
-    // Guarda todos los partidos
     await prisma.match.createMany({ data: matches });
-        // Avanza automáticamente los byes a la siguiente ronda
-       // Avanza automáticamente los byes a la siguiente ronda
-const byeMatches = await prisma.match.findMany({
-  where: { tournamentId: id, status: "BYE" },
-});
-console.log('Bye matches encontrados:', byeMatches.length);
-console.log('Bye matches data:', JSON.stringify(byeMatches, null, 2));
-for (const byeMatch of byeMatches) {
-  const winnerId = byeMatch.teamAId; // en bye siempre teamA es el que avanza
-  if (!winnerId) continue;
 
-  const nextRound = byeMatch.round + 1;
-  const nextPosition = Math.ceil(byeMatch.position / 2);
-
-  const nextMatch = await prisma.match.findFirst({
-    where: {
-      tournamentId: id,
-      bracket: byeMatch.bracket,
-      round: nextRound,
-      position: nextPosition,
-    },
-  });
-
-  if (nextMatch) {
-    const isSlotA = byeMatch.position % 2 === 1;
-    await prisma.match.update({
-      where: { id: nextMatch.id },
-      data: isSlotA
-        ? { teamA: { connect: { id: winnerId } } }
-        : { teamB: { connect: { id: winnerId } } },
+    // Avanza byes automáticamente
+    const byeMatches = await prisma.match.findMany({
+      where: { tournamentId: id, status: "BYE" },
     });
-  }
-} 
-    // Actualiza el status del torneo
+
+    for (const byeMatch of byeMatches) {
+      const winnerId = byeMatch.teamAId;
+      if (!winnerId) continue;
+
+      const nextRound = byeMatch.round + 1;
+      const nextPosition = Math.ceil(byeMatch.position / 2);
+
+      const nextMatch = await prisma.match.findFirst({
+        where: {
+          tournamentId: id,
+          bracket: byeMatch.bracket,
+          round: nextRound,
+          position: nextPosition,
+        },
+      });
+
+      if (nextMatch) {
+        const isSlotA = byeMatch.position % 2 === 1;
+        await prisma.match.update({
+          where: { id: nextMatch.id },
+          data: isSlotA
+            ? { teamA: { connect: { id: winnerId } } }
+            : { teamB: { connect: { id: winnerId } } },
+        });
+      }
+    }
+
     await prisma.tournament.update({
       where: { id },
       data: { status: "IN_PROGRESS" },

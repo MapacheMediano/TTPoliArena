@@ -6,14 +6,16 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 
 
+
 interface BracketViewProps {
   matches: MatchData[];
   totalRounds: number;
   format: string;
   onMatchClick?: (matchId: string) => void;
+  championLabel?: string; // nuevo
 }
 
-export default function BracketView({ matches, totalRounds, format, onMatchClick }: BracketViewProps) {
+export default function BracketView({ matches, totalRounds, format, onMatchClick, championLabel = 'Campeón' }: BracketViewProps) {
   // Nombres de las rondas
   const getRoundName = (round: number): string => {
     if (round === totalRounds) return 'Final';
@@ -179,7 +181,7 @@ export default function BracketView({ matches, totalRounds, format, onMatchClick
               variant="subtitle2"
               sx={{ color: '#D4A84B', fontWeight: 700, mb: 2 }}
             >
-              Campeón
+              {championLabel}
             </Typography>
             {(() => {
               const finalMatch = matches.find(

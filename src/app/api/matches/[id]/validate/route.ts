@@ -52,7 +52,8 @@ export async function POST(req: Request, { params }: Params) {
     }
 
     if (parsed.data.action === "APPROVE") {
-      // Aprueba el resultado
+
+      // 1 — Marca el partido como FINISHED
       await prisma.match.update({
         where: { id },
         data: {
@@ -61,39 +62,121 @@ export async function POST(req: Request, { params }: Params) {
         },
       });
 
-      // Avanza al ganador a la siguiente ronda
-      if (match.winnerId) {
-        const nextRound = match.round + 1;
-        const nextPosition = Math.ceil(match.position / 2);
+      const winnerId = match.winnerId;
+      const loserId = winnerId === match.teamAId ? match.teamBId : match.teamAId;
 
-        const nextMatch = await prisma.match.findFirst({
+      console.log(`Partido ${id} aprobado. Ganador: ${winnerId}, Perdedor: ${loserId}, Bracket: ${match.bracket}, Ronda: ${match.round}, Posición: ${match.position}`);
+
+      // 2 — Avanza ganador al siguiente partido del mismo bracket
+      const nextWinnerRound = match.round + 1;
+      const nextWinnerPosition = Math.ceil(match.position / 2);
+
+      const nextWinnerMatch = await prisma.match.findFirst({
+        where: {
+          tournamentId: match.tournamentId,
+          bracket: match.bracket,
+          round: nextWinnerRound,
+          position: nextWinnerPosition,
+        },
+      });
+
+      console.log(`Siguiente partido ganador: ${nextWinnerMatch?.id ?? 'ninguno'} (ronda ${nextWinnerRound}, pos ${nextWinnerPosition})`);
+
+      if (nextWinnerMatch && winnerId) {
+        const isSlotA = match.position % 2 === 1;
+        await prisma.match.update({
+          where: { id: nextWinnerMatch.id },
+          data: isSlotA
+            ? { teamA: { connect: { id: winnerId } } }
+            : { teamB: { connect: { id: winnerId } } },
+        });
+        console.log(`Ganador colocado en slot ${isSlotA ? 'A' : 'B'} del partido ${nextWinnerMatch.id}`);
+      }
+
+      // 3 — Si es eliminación doble y el partido es del Winners bracket
+      // el perdedor baja al Losers bracket ronda 1
+      if (match.bracket === "WINNERS" && loserId) {
+        const loserPosition = Math.ceil(match.position / 2);
+
+        const loserMatch = await prisma.match.findFirst({
           where: {
             tournamentId: match.tournamentId,
-            bracket: match.bracket,
-            round: nextRound,
-            position: nextPosition,
+            bracket: "LOSERS",
+            round: 1,
+            position: loserPosition,
           },
         });
-        // Si no hay siguiente partida, es el campeón — marca el torneo como FINISHED
-            if (!nextMatch && match.winnerId) {
-            await prisma.tournament.update({
-                where: { id: match.tournamentId },
-                data: { status: "FINISHED" },
-            });
-            }
 
-        if (nextMatch) {
-          const isSlotA = match.position % 2 === 1;
+        console.log(`Partido losers encontrado: ${loserMatch?.id ?? 'ninguno'} (pos ${loserPosition})`);
+
+        if (loserMatch) {
+          const slotA = !loserMatch.teamAId;
           await prisma.match.update({
-            where: { id: nextMatch.id },
-            data: isSlotA
-              ? { teamA: { connect: { id: match.winnerId } } }
-              : { teamB: { connect: { id: match.winnerId } } },
+            where: { id: loserMatch.id },
+            data: slotA
+              ? { teamA: { connect: { id: loserId } } }
+              : { teamB: { connect: { id: loserId } } },
           });
+          console.log(`Perdedor colocado en slot ${slotA ? 'A' : 'B'} del partido losers ${loserMatch.id}`);
         }
       }
+
+      // 4 — Si el partido es del Losers bracket, el ganador avanza en Losers
+      // ya está cubierto por el paso 2 (mismo bracket)
+
+      // 5 — Si el ganador del Losers va a la Gran Final
+      if (match.bracket === "LOSERS" && !nextWinnerMatch && winnerId) {
+        const grandFinal = await prisma.match.findFirst({
+          where: {
+            tournamentId: match.tournamentId,
+            bracket: "GRAND_FINAL",
+          },
+        });
+
+        if (grandFinal) {
+          const slotA = !grandFinal.teamAId;
+          await prisma.match.update({
+            where: { id: grandFinal.id },
+            data: slotA
+              ? { teamA: { connect: { id: winnerId } } }
+              : { teamB: { connect: { id: winnerId } } },
+          });
+          console.log(`Ganador de Losers colocado en Gran Final`);
+        }
+      }
+
+      // 6 — Si el partido es del Winners y es la final, el ganador va a Gran Final
+      if (match.bracket === "WINNERS" && !nextWinnerMatch && winnerId) {
+        const grandFinal = await prisma.match.findFirst({
+          where: {
+            tournamentId: match.tournamentId,
+            bracket: "GRAND_FINAL",
+          },
+        });
+
+        if (grandFinal) {
+          const slotA = !grandFinal.teamAId;
+          await prisma.match.update({
+            where: { id: grandFinal.id },
+            data: slotA
+              ? { teamA: { connect: { id: winnerId } } }
+              : { teamB: { connect: { id: winnerId } } },
+          });
+          console.log(`Campeón de Winners colocado en Gran Final`);
+        }
+      }
+
+      // 7 — Si es Gran Final, el ganador es campeón
+      if (match.bracket === "GRAND_FINAL" && !nextWinnerMatch && winnerId) {
+        await prisma.tournament.update({
+          where: { id: match.tournamentId },
+          data: { status: "FINISHED" },
+        });
+        console.log(`Torneo finalizado. Campeón: ${winnerId}`);
+      }
+
     } else {
-      // Rechaza — regresa a PENDING
+      // REJECT — regresa a PENDING
       await prisma.match.update({
         where: { id },
         data: {

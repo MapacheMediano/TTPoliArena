@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     async function loadProfile() {
@@ -36,7 +37,7 @@ export default function ProfilePage() {
           router.push('/login');
           return;
         }
-
+        setUserRole(profileRes.user.role);
         const u = profileRes.user;
 
         // Mapea datos del backend al formato que espera ProfileView
@@ -107,7 +108,7 @@ export default function ProfilePage() {
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
     }}>
-      <Navbar isLoggedIn={true} userName={userData.nombre} />
+      <Navbar isLoggedIn={true} userName={userData.nombre} role={userRole}/>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Button

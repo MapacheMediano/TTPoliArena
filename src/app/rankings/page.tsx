@@ -23,6 +23,7 @@ export default function RankingsPage() {
   const [loading, setLoading] = useState(true);
   const [filterJuego, setFilterJuego] = useState('Todos');
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -33,6 +34,7 @@ export default function RankingsPage() {
           return;
         }
         setUserName(meRes.user.email.split('@')[0]);
+        setUserRole(meRes.user.role);
 
         const rankingsRes = await getRankings();
         if (rankingsRes.ok && rankingsRes.rankings) {
@@ -64,7 +66,7 @@ export default function RankingsPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>

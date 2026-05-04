@@ -20,6 +20,9 @@ export default function DashboardPage() {
   const [myTeam, setMyTeam] = useState<string>('Sin equipo');
   const [myTeamData, setMyTeamData] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState('');
+  const [userName, setUserName] = useState('');
+
 
   useEffect(() => {
     async function loadDashboard() {
@@ -29,6 +32,8 @@ export default function DashboardPage() {
           router.push('/login');
           return;
         }
+        setUserRole(me.user.role);
+        setUserName(me.user.email.split('@')[0]);
 
         const [profileRes, tournamentsRes, teamsRes] = await Promise.all([
           getMyProfile(),
@@ -123,7 +128,7 @@ export default function DashboardPage() {
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
     }}>
-      <Navbar isLoggedIn={true} userName={userForCard.nombre} />
+      <Navbar isLoggedIn={true} userName={userForCard.nombre} role={userRole}/>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>

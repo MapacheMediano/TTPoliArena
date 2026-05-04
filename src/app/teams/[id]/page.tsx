@@ -26,6 +26,7 @@ export default function TeamDetailPage() {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState('');
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -40,6 +41,7 @@ export default function TeamDetailPage() {
         }
         setCurrentUserId(meRes.user.id);
         setUserName(meRes.user.email.split('@')[0]);
+        setUserRole(meRes.user.role);
 
         const teamRes = await getTeamById(id);
         if (!teamRes.ok || !teamRes.team) {
@@ -97,7 +99,7 @@ export default function TeamDetailPage() {
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} />
+      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/teams')} sx={{ color: '#C4B0B8', mb: 2 }}>
