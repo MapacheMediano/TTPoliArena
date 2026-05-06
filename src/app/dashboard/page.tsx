@@ -10,6 +10,7 @@ import QuickStats from '@/components/dashboard/QuickStats';
 import { getCurrentUser, getMyProfile, getMyTournaments } from '@/lib/api/auth.service';
 import type { UserProfile, TournamentFromAPI } from '@/lib/api/types/auth.types';
 import { getMyTeams } from '@/lib/api/teams.service';
+import { apiClient } from '@/lib/api/client';
 import type { Team } from '@/lib/api/teams.service';
 
 export default function DashboardPage() {
@@ -20,6 +21,13 @@ export default function DashboardPage() {
   const [myTeam, setMyTeam] = useState<string>('Sin equipo');
   const [myTeamData, setMyTeamData] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const [realStats, setRealStats] = useState({
+  torneosActivos: 0,
+  partidasJugadas: 0,
+  victorias: 0,
+  torneosGanados: 0,
+  racha: 0,
+    });
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
 
@@ -35,11 +43,16 @@ export default function DashboardPage() {
         setUserRole(me.user.role);
         setUserName(me.user.email.split('@')[0]);
 
-        const [profileRes, tournamentsRes, teamsRes] = await Promise.all([
+        const [profileRes, tournamentsRes, teamsRes, statsRes] = await Promise.all([
           getMyProfile(),
           getMyTournaments(),
           getMyTeams(),
+          apiClient<{ ok: boolean; stats: any }>('/api/me/stats'),
         ]);
+
+        if (statsRes.ok && statsRes.stats) {
+          setRealStats(statsRes.stats);
+        }
 
         if (profileRes.ok && profileRes.user) {
           setProfile(profileRes.user);
@@ -105,10 +118,10 @@ export default function DashboardPage() {
   }));
 
   const mockStats = {
-    torneosActivos: tournaments.filter(t => t.status === 'OPEN').length,
-    partidasJugadas: 0,
-    victorias: 0,
-    racha: 0,
+  torneosActivos: realStats.torneosActivos,
+  partidasJugadas: realStats.partidasJugadas,
+  victorias: realStats.victorias,
+  racha: realStats.racha,
   };
 
   // Mapea el equipo al formato que espera MyTeam

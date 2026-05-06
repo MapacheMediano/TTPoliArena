@@ -9,6 +9,8 @@ import ProfileEditForm from '@/components/profile/ProfileEditForm';
 import TournamentHistory from '@/components/profile/TournamentHistory';
 import { getMyProfile, getMyTournaments } from '@/lib/api/auth.service';
 import { getMyTeams } from '@/lib/api/teams.service';
+import { apiClient } from '@/lib/api/client';
+
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -21,10 +23,11 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const [profileRes, tournamentsRes, teamsRes] = await Promise.all([
+        const [profileRes, tournamentsRes, teamsRes, statsRes] = await Promise.all([
   getMyProfile(),
   getMyTournaments(),
   getMyTeams(),
+  apiClient<{ ok: boolean; stats: any }>('/api/me/stats'),
 ]);
         const primaryTeam = teamsRes.ok && teamsRes.teams
       ? teamsRes.teams.find(t => t.captainId === profileRes.user?.id) ?? teamsRes.teams[0]
@@ -52,9 +55,9 @@ export default function ProfilePage() {
   equipoTag: equipoTag,
           juegosFavoritos: [],
           torneosJugados: tournamentsRes.tournaments?.length ?? 0,
-          torneosGanados: 0,
-          partidasJugadas: 0,
-          victorias: 0,
+          torneosGanados: statsRes.ok ? statsRes.stats?.torneosGanados ?? 0 : 0,
+          partidasJugadas: statsRes.ok ? statsRes.stats?.partidasJugadas ?? 0 : 0,
+          victorias: statsRes.ok ? statsRes.stats?.victorias ?? 0 : 0,
           fechaRegistro: new Date(u.createdAt).toLocaleDateString('es-MX', {
             month: 'long',
             year: 'numeric',

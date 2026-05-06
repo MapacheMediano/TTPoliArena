@@ -1,3 +1,4 @@
+
 // src/components/dashboard/MyTournaments.tsx
 'use client';
 import {
@@ -8,19 +9,21 @@ import {
   Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useRouter } from 'next/navigation';
 import TournamentCard, { TournamentData } from '@/components/TournamentCard';
 
 interface MyTournamentsProps {
   tournaments: TournamentData[];
   onViewAll?: () => void;
   onBrowseTournaments?: () => void;
-}
+} 
 
 export default function MyTournaments({
   tournaments,
   onViewAll,
   onBrowseTournaments,
 }: MyTournamentsProps) {
+  const router = useRouter();
   return (
     <Paper
       elevation={0}
@@ -60,7 +63,7 @@ export default function MyTournaments({
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={tournament.id}>
               <TournamentCard
                 tournament={tournament}
-                onClick={() => console.log('Ver torneo:', tournament.id)}
+                onClick={() => router.push('/tournaments/' + tournament.id)}
               />
             </Grid>
           ))}
