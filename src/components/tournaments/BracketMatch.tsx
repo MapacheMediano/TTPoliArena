@@ -115,7 +115,7 @@ export default function BracketMatch({ match, onClick }: BracketMatchProps) {
               fontSize: '0.75rem',
             }}
           >
-            {team?.score !== null && team?.score !== undefined ? team.score : '-'}
+            {match.status === 'finished' && team?.score !== null && team?.score !== undefined ? team.score : '-'}
           </Typography>
         </Box>
       </Box>

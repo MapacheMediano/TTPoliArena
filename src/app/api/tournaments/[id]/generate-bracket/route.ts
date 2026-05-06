@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { isTeamGame } from "@/lib/gameConfig";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -53,21 +54,62 @@ export async function POST(_req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "El bracket ya fue generado" }, { status: 400 });
     }
 
-    const teams = await prisma.team.findMany({
-      where: {
-        captainId: { in: tournament.registrations.map(r => r.userId) },
-        game: tournament.game,
-      },
+
+// Obtiene participantes según el tipo de juego
+let participants: { id: string; name: string; tag: string }[] = [];
+
+if (isTeamGame(tournament.game)) {
+  const teams = await prisma.team.findMany({
+    where: {
+      captainId: { in: tournament.registrations.map(r => r.userId) },
+      game: tournament.game,
+    },
+    select: { id: true, name: true, tag: true },
+  });
+  participants = teams;
+} else {
+  // Juego individual — crea equipos virtuales por cada jugador
+  const users = await prisma.user.findMany({
+    where: { id: { in: tournament.registrations.map(r => r.userId) } },
+    include: { PlayerProfile: { select: { fullName: true, gamerTag: true } } },
+  });
+
+  // Busca o crea un equipo virtual por cada jugador
+  for (const u of users) {
+    const tag = (u.PlayerProfile?.gamerTag ?? u.email.split('@')[0])
+      .slice(0, 4)
+      .toUpperCase();
+    const name = u.PlayerProfile?.fullName ?? u.email.split('@')[0];
+
+    // Busca si ya tiene equipo del mismo juego
+    let team = await prisma.team.findFirst({
+      where: { captainId: u.id, game: tournament.game },
     });
 
-    if (teams.length < 2) {
-      return NextResponse.json(
-        { ok: false, error: "Se necesitan al menos 2 equipos para generar el bracket" },
-        { status: 400 }
-      );
+    // Si no tiene, crea uno virtual
+    if (!team) {
+      team = await prisma.team.create({
+        data: {
+          name,
+          tag: tag + '_' + u.id.slice(-4),
+          game: tournament.game,
+          captainId: u.id,
+        },
+      });
     }
 
-    const shuffledTeams = shuffle(teams);
+    participants.push({ id: team.id, name: team.name, tag: team.tag });
+  }
+}
+
+if (participants.length < 2) {
+  return NextResponse.json(
+    { ok: false, error: "Se necesitan al menos 2 participantes para generar el bracket" },
+    { status: 400 }
+  );
+}
+
+const shuffledTeams = shuffle(participants);
     const format = tournament.format;
     const matches: any[] = [];
 
