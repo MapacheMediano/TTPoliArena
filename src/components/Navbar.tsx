@@ -38,7 +38,11 @@ export default function Navbar({ isLoggedIn = false, userName = '', role = '' }:
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+  if (typeof window === 'undefined') return new Set();
+  const saved = localStorage.getItem('poliarena_read_notifs');
+  return saved ? new Set(JSON.parse(saved)) : new Set();
+    });
   const menuOpen = Boolean(anchorEl);
   const notifOpen = Boolean(notifAnchorEl);
 
@@ -156,7 +160,11 @@ export default function Navbar({ isLoggedIn = false, userName = '', role = '' }:
                       <Box key={notif.id}>
                         <ListItem
                           onClick={() => {
-                            setReadIds(prev => new Set([...prev, notif.id]));
+                            setReadIds(prev => {
+                              const updated = new Set([...prev, notif.id]);
+                              localStorage.setItem('poliarena_read_notifs', JSON.stringify([...updated]));
+                              return updated;
+                            });
                             handleNotifClose();
                             router.push(notif.link);
                           }}
