@@ -20,17 +20,18 @@ export default function DashboardPage() {
   const [tournaments, setTournaments] = useState<TournamentFromAPI[]>([]);
   const [myTeam, setMyTeam] = useState<string>('Sin equipo');
   const [myTeamData, setMyTeamData] = useState<Team | null>(null);
+  const [allTeams, setAllTeams] = useState<Team[]>([]);
+  const [currentUserId, setCurrentUserId] = useState('');
   const [loading, setLoading] = useState(true);
   const [realStats, setRealStats] = useState({
-  torneosActivos: 0,
-  partidasJugadas: 0,
-  victorias: 0,
-  torneosGanados: 0,
-  racha: 0,
-    });
+    torneosActivos: 0,
+    partidasJugadas: 0,
+    victorias: 0,
+    torneosGanados: 0,
+    racha: 0,
+  });
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
-
 
   useEffect(() => {
     async function loadDashboard() {
@@ -42,6 +43,7 @@ export default function DashboardPage() {
         }
         setUserRole(me.user.role);
         setUserName(me.user.email.split('@')[0]);
+        setCurrentUserId(me.user.id);
 
         const [profileRes, tournamentsRes, teamsRes, statsRes] = await Promise.all([
           getMyProfile(),
@@ -62,11 +64,14 @@ export default function DashboardPage() {
           setTournaments(tournamentsRes.tournaments);
         }
 
-        if (teamsRes.ok && teamsRes.teams && teamsRes.teams.length > 0) {
-        const primaryTeam = teamsRes.teams.find(t => t.captainId === me.user!.id)
-          ?? teamsRes.teams[0];
-        setMyTeam(primaryTeam.name);
-        setMyTeamData(primaryTeam);
+        if (teamsRes.ok && teamsRes.teams) {
+          setAllTeams(teamsRes.teams);
+          if (teamsRes.teams.length > 0) {
+            const primaryTeam = teamsRes.teams.find(t => t.captainId === me.user!.id)
+              ?? teamsRes.teams[0];
+            setMyTeam(primaryTeam.name);
+            setMyTeamData(primaryTeam);
+          }
         }
 
       } catch (error) {
@@ -118,30 +123,31 @@ export default function DashboardPage() {
   }));
 
   const mockStats = {
-  torneosActivos: realStats.torneosActivos,
-  partidasJugadas: realStats.partidasJugadas,
-  victorias: realStats.victorias,
-  racha: realStats.racha,
+    torneosActivos: realStats.torneosActivos,
+    partidasJugadas: realStats.partidasJugadas,
+    victorias: realStats.victorias,
+    racha: realStats.racha,
   };
 
-  // Mapea el equipo al formato que espera MyTeam
-  const teamForCard = myTeamData ? {
-    nombre: myTeamData.name,
-    tag: myTeamData.tag,
-    juego: myTeamData.game,
-    miembros: myTeamData.members.map((m) => ({
+  const teamsForCard = allTeams.map(t => ({
+    id: t.id,
+    nombre: t.name,
+    tag: t.tag,
+    juego: t.game,
+    esCopitan: t.captainId === currentUserId,
+    miembros: t.members.map((m: any) => ({
       nombre: m.user.PlayerProfile?.fullName ?? m.user.email.split('@')[0],
       nickname: m.user.PlayerProfile?.gamerTag ?? 'Sin nickname',
-      rol: m.userId === myTeamData.captainId ? 'Capitán' : 'Miembro',
+      rol: m.userId === t.captainId ? 'Capitán' : 'Miembro',
     })),
-  } : null;
+  }));
 
   return (
     <Box sx={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
     }}>
-      <Navbar isLoggedIn={true} userName={userForCard.nombre} role={userRole}/>
+      <Navbar isLoggedIn={true} userName={userForCard.nombre} role={userRole} />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
@@ -149,18 +155,11 @@ export default function DashboardPage() {
             ¡Hola, {profile?.PlayerProfile?.gamerTag ?? profile?.PlayerProfile?.fullName ?? profile?.email?.split('@')[0]}! 👋
           </Typography>
           {!profile?.PlayerProfile && (
-            <Alert
-              severity="info"
-              sx={{ mb: 3 }}
-              action={
-                <Button color="inherit" size="small" onClick={() => router.push('/profile')}>
-                  Completar
-                </Button>
-              }
-            >
+            <Alert severity="info" sx={{ mb: 3 }}
+              action={<Button color="inherit" size="small" onClick={() => router.push('/profile')}>Completar</Button>}>
               Tu perfil está incompleto. Agrega tu nombre y nickname para que otros jugadores te reconozcan.
             </Alert>
-            )}
+          )}
           <Typography variant="body1" color="text.secondary">
             Bienvenido a tu panel de PoliArena
           </Typography>
@@ -178,8 +177,7 @@ export default function DashboardPage() {
                 onEditProfile={() => router.push('/profile')}
               />
               <MyTeam
-                team={teamForCard}
-                onManageTeam={() => router.push('/teams')}
+                teams={teamsForCard}
                 onCreateTeam={() => router.push('/teams')}
               />
             </Box>

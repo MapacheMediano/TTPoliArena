@@ -11,10 +11,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import StarIcon from '@mui/icons-material/Star';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import GroupsIcon from '@mui/icons-material/Groups';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import Navbar from '@/components/Navbar';
 import InviteMemberModal from '@/components/teams/InviteMemberModal';
 import { getTeamById, removeTeamMember, addTeamMember } from '@/lib/api/teams.service';
 import { getCurrentUser } from '@/lib/api/auth.service';
+import { apiClient } from '@/lib/api/client';
 import type { Team } from '@/lib/api/teams.service';
 
 export default function TeamDetailPage() {
@@ -35,19 +39,12 @@ export default function TeamDetailPage() {
     async function load() {
       try {
         const meRes = await getCurrentUser();
-        if (!meRes.user) {
-          router.push('/login');
-          return;
-        }
+        if (!meRes.user) { router.push('/login'); return; }
         setCurrentUserId(meRes.user.id);
         setUserName(meRes.user.email.split('@')[0]);
         setUserRole(meRes.user.role);
-
         const teamRes = await getTeamById(id);
-        if (!teamRes.ok || !teamRes.team) {
-          router.push('/teams');
-          return;
-        }
+        if (!teamRes.ok || !teamRes.team) { router.push('/teams'); return; }
         setTeam(teamRes.team);
       } catch (error) {
         router.push('/teams');
@@ -59,22 +56,20 @@ export default function TeamDetailPage() {
   }, [id, router]);
 
   const handleInvited = async (correo: string) => {
-    setError('');
-    setSuccess('');
+    setError(''); setSuccess('');
     const result = await addTeamMember(id, { email: correo });
     if (result.ok) {
-      setSuccess('Miembro agregado correctamente');
+      setSuccess('Invitación enviada correctamente');
       const teamRes = await getTeamById(id);
       if (teamRes.ok && teamRes.team) setTeam(teamRes.team);
     } else {
-      setError(result.error ?? 'Error al agregar miembro');
+      setError(result.error ?? 'Error al enviar invitación');
     }
     setInviteModalOpen(false);
   };
 
   const handleRemoveMember = async (userId: string) => {
-    setError('');
-    setSuccess('');
+    setError(''); setSuccess('');
     const result = await removeTeamMember(id, userId);
     if (result.ok) {
       setSuccess('Miembro eliminado correctamente');
@@ -82,6 +77,29 @@ export default function TeamDetailPage() {
       if (teamRes.ok && teamRes.team) setTeam(teamRes.team);
     } else {
       setError(result.error ?? 'Error al eliminar miembro');
+    }
+  };
+
+  const handleInviteResponse = async (action: 'ACCEPT' | 'REJECT') => {
+    setError(''); setSuccess('');
+    try {
+      const result = await apiClient<{ ok: boolean; message?: string; error?: string }>(
+        `/api/teams/${id}/invite`,
+        { method: 'POST', body: { action } }
+      );
+      if (result.ok) {
+        setSuccess(action === 'ACCEPT' ? '¡Te uniste al equipo!' : 'Invitación rechazada');
+        if (action === 'ACCEPT') {
+          const teamRes = await getTeamById(id);
+          if (teamRes.ok && teamRes.team) setTeam(teamRes.team);
+        } else {
+          router.push('/teams');
+        }
+      } else {
+        setError(result.error ?? 'Error al procesar la invitación');
+      }
+    } catch (error) {
+      setError('Error de conexión');
     }
   };
 
@@ -96,10 +114,12 @@ export default function TeamDetailPage() {
   if (!team) return null;
 
   const isCaptain = team.captainId === currentUserId;
+  const myMembership = team.members.find(m => m.userId === currentUserId);
+  const isPendingInvite = myMembership?.status === 'PENDING';
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
-      <Navbar isLoggedIn={true} userName={userName} role={userRole}/>
+      <Navbar isLoggedIn={true} userName={userName} role={userRole} />
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/teams')} sx={{ color: '#C4B0B8', mb: 2 }}>
@@ -109,6 +129,28 @@ export default function TeamDetailPage() {
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
+        {/* Banner de invitación pendiente */}
+        {isPendingInvite && (
+          <Alert
+            severity="info"
+            sx={{ mb: 3, backgroundColor: 'rgba(212, 168, 75, 0.1)', border: '1px solid rgba(212, 168, 75, 0.3)', color: '#F5F0F2' }}
+            action={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button size="small" variant="contained" color="success" startIcon={<CheckCircleIcon />}
+                  onClick={() => handleInviteResponse('ACCEPT')}>
+                  Aceptar
+                </Button>
+                <Button size="small" variant="outlined" color="error" startIcon={<CancelIcon />}
+                  onClick={() => handleInviteResponse('REJECT')}>
+                  Rechazar
+                </Button>
+              </Box>
+            }
+          >
+            Tienes una invitación pendiente para unirte a este equipo
+          </Alert>
+        )}
+
         {/* Header */}
         <Paper elevation={0} sx={{ p: 4, backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
@@ -116,21 +158,14 @@ export default function TeamDetailPage() {
               {team.tag}
             </Avatar>
             <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#F5F0F2' }}>
-                {team.name}
-              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: '#F5F0F2' }}>{team.name}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                 <SportsEsportsIcon sx={{ fontSize: 16, color: '#D4A84B' }} />
-                <Typography variant="body2" sx={{ color: '#D4A84B', fontWeight: 600 }}>
-                  {team.game}
-                </Typography>
+                <Typography variant="body2" sx={{ color: '#D4A84B', fontWeight: 600 }}>{team.game}</Typography>
               </Box>
             </Box>
-            <Chip
-              icon={<GroupsIcon />}
-              label={team.members.length + ' miembros'}
-              sx={{ backgroundColor: 'rgba(212, 168, 75, 0.15)', color: '#D4A84B' }}
-            />
+            <Chip icon={<GroupsIcon />} label={team.members.filter(m => m.status === 'ACCEPTED' || m.userId === team.captainId).length + ' miembros'}
+              sx={{ backgroundColor: 'rgba(212, 168, 75, 0.15)', color: '#D4A84B' }} />
           </Box>
           <Typography variant="caption" color="text.secondary">
             Creado el {new Date(team.createdAt).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -140,12 +175,10 @@ export default function TeamDetailPage() {
         {/* Miembros */}
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2' }}>
-              Integrantes
-            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2' }}>Integrantes</Typography>
             {isCaptain && (
               <Button variant="contained" startIcon={<PersonAddIcon />} size="small" onClick={() => setInviteModalOpen(true)}>
-                Agregar miembro
+                Invitar miembro
               </Button>
             )}
           </Box>
@@ -157,38 +190,39 @@ export default function TeamDetailPage() {
               const isCaptainMember = member.userId === team.captainId;
               const displayName = member.user.PlayerProfile?.fullName ?? member.user.email.split('@')[0];
               const gamerTag = member.user.PlayerProfile?.gamerTag;
+              const isPending = member.status === 'PENDING';
 
               return (
-                <Box key={member.id} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 2, backgroundColor: 'rgba(26, 10, 16, 0.4)', border: '1px solid rgba(123, 30, 59, 0.15)' }}>
+                <Box key={member.id} sx={{
+                  display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 2,
+                  backgroundColor: isPending ? 'rgba(212, 168, 75, 0.05)' : 'rgba(26, 10, 16, 0.4)',
+                  border: isPending ? '1px solid rgba(212, 168, 75, 0.2)' : '1px solid rgba(123, 30, 59, 0.15)',
+                }}>
                   <Avatar sx={{ width: 40, height: 40, background: 'linear-gradient(135deg, #7B1E3B, #D4A84B)', fontWeight: 700 }}>
                     {displayName[0].toUpperCase()}
                   </Avatar>
                   <Box sx={{ flexGrow: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#F5F0F2' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: isPending ? '#C4B0B8' : '#F5F0F2' }}>
                         {displayName}
                       </Typography>
                       {isCaptainMember && (
-                        <Chip
-                          icon={<StarIcon sx={{ fontSize: '14px !important' }} />}
-                          label="Capitán"
-                          size="small"
-                          sx={{ backgroundColor: 'rgba(212, 168, 75, 0.2)', color: '#D4A84B', height: 20, fontSize: '0.7rem' }}
-                        />
+                        <Chip icon={<StarIcon sx={{ fontSize: '14px !important' }} />} label="Capitán" size="small"
+                          sx={{ backgroundColor: 'rgba(212, 168, 75, 0.2)', color: '#D4A84B', height: 20, fontSize: '0.7rem' }} />
+                      )}
+                      {isPending && (
+                        <Chip icon={<HourglassEmptyIcon sx={{ fontSize: '14px !important' }} />} label="Pendiente" size="small"
+                          sx={{ backgroundColor: 'rgba(212, 168, 75, 0.1)', color: '#D4A84B', height: 20, fontSize: '0.7rem' }} />
                       )}
                     </Box>
-                    {gamerTag && (
-                      <Typography variant="caption" sx={{ color: '#D4A84B' }}>
-                        @{gamerTag}
-                      </Typography>
-                    )}
+                    {gamerTag && <Typography variant="caption" sx={{ color: '#D4A84B' }}>@{gamerTag}</Typography>}
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       {member.user.email}
                     </Typography>
                   </Box>
                   {isCaptain && !isCaptainMember && (
                     <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => handleRemoveMember(member.userId)}>
-                      Eliminar
+                      {isPending ? 'Cancelar' : 'Eliminar'}
                     </Button>
                   )}
                 </Box>

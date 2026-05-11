@@ -96,6 +96,7 @@ model TeamMember {
   teamId   String
   userId   String
   joinedAt DateTime @default(now())
+  status   String   @default("PENDING")
   team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

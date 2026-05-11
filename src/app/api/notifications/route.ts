@@ -91,6 +91,42 @@ export async function GET() {
       }
     }
 
+    // 4 — Invitaciones pendientes a equipos
+      const pendingInvitations = await prisma.teamMember.findMany({
+        where: {
+          userId: session.userId,
+          status: "PENDING",
+        },
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              tag: true,
+              game: true,
+              captain: {
+                select: {
+                  PlayerProfile: { select: { fullName: true, gamerTag: true } },
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      pendingInvitations.forEach(inv => {
+        const captainName = inv.team.captain.PlayerProfile?.gamerTag
+          ?? inv.team.captain.PlayerProfile?.fullName
+          ?? inv.team.captain.email.split('@')[0];
+        notifications.push({
+          id: `invite-${inv.teamId}`,
+          type: "TEAM_INVITE",
+          message: `🎮 ${captainName} te invitó a unirte al equipo [${inv.team.tag}] ${inv.team.name}`,
+          link: `/teams/${inv.teamId}`,
+          createdAt: inv.joinedAt.toISOString(),
+        });
+      });
     // Ordena por más reciente
     notifications.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

@@ -86,7 +86,7 @@ export async function POST(req: Request) {
         game: parsed.data.game.trim(),
         captainId: session.userId,
         members: {
-          create: { userId: session.userId },
+          create: { userId: session.userId, status: "ACCEPTED" },
         },
       },
       include: {

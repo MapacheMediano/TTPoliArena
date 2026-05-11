@@ -17,6 +17,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import WarningIcon from '@mui/icons-material/Warning';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { logoutUser } from '@/lib/api/auth.service';
 
 interface Notification {
@@ -83,6 +84,7 @@ export default function Navbar({ isLoggedIn = false, userName = '', role = '' }:
       case 'RESULT_REJECTED': return <CancelIcon sx={{ fontSize: 18, color: '#FF6B6B' }} />;
       case 'PENDING_VALIDATIONS': return <WarningIcon sx={{ fontSize: 18, color: '#D4A84B' }} />;
       case 'NEW_TOURNAMENT': return <EmojiEventsOutlinedIcon sx={{ fontSize: 18, color: '#2196F3' }} />;
+      case 'TEAM_INVITE': return <GroupsIcon sx={{ fontSize: 18, color: '#D4A84B' }} />;
       default: return <NotificationsIcon sx={{ fontSize: 18, color: '#C4B0B8' }} />;
     }
   };

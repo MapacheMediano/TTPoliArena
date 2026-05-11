@@ -13,18 +13,21 @@ export async function POST(req: Request, { params }: Params) {
   try {
     const { id } = await params;
     const session = await getSession();
-
     if (!session.userId) {
       return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
     }
 
-    const team = await prisma.team.findUnique({ where: { id } });
+    const team = await prisma.team.findUnique({
+      where: { id },
+      include: { captain: { select: { PlayerProfile: { select: { fullName: true, gamerTag: true } } } } },
+    });
+
     if (!team) {
       return NextResponse.json({ ok: false, error: "Equipo no encontrado" }, { status: 404 });
     }
 
     if (team.captainId !== session.userId) {
-      return NextResponse.json({ ok: false, error: "Solo el capitán puede agregar miembros" }, { status: 403 });
+      return NextResponse.json({ ok: false, error: "Solo el capitán puede invitar miembros" }, { status: 403 });
     }
 
     const body = await req.json().catch(() => null);
@@ -42,16 +45,24 @@ export async function POST(req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    if (userToAdd.id === session.userId) {
+      return NextResponse.json({ ok: false, error: "No puedes invitarte a ti mismo" }, { status: 400 });
+    }
+
     const existing = await prisma.teamMember.findUnique({
       where: { teamId_userId: { teamId: id, userId: userToAdd.id } },
     });
 
     if (existing) {
+      if (existing.status === "PENDING") {
+        return NextResponse.json({ ok: false, error: "Ya existe una invitación pendiente para este usuario" }, { status: 409 });
+      }
       return NextResponse.json({ ok: false, error: "El usuario ya es miembro del equipo" }, { status: 409 });
     }
 
+    // Crea la invitación como PENDING
     const member = await prisma.teamMember.create({
-      data: { teamId: id, userId: userToAdd.id },
+      data: { teamId: id, userId: userToAdd.id, status: "PENDING" },
       include: {
         user: {
           select: {
@@ -63,7 +74,11 @@ export async function POST(req: Request, { params }: Params) {
       },
     });
 
-    return NextResponse.json({ ok: true, member }, { status: 201 });
+    return NextResponse.json({
+      ok: true,
+      member,
+      message: `Invitación enviada a ${userToAdd.PlayerProfile?.gamerTag ?? userToAdd.email}`,
+    }, { status: 201 });
   } catch (error) {
     console.error("POST /api/teams/[id]/members error:", error);
     return NextResponse.json({ ok: false, error: "Error interno del servidor" }, { status: 500 });
@@ -74,14 +89,12 @@ export async function DELETE(req: Request, { params }: Params) {
   try {
     const { id } = await params;
     const session = await getSession();
-
     if (!session.userId) {
       return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
     }
 
     const body = await req.json().catch(() => null);
     const userId = body?.userId as string;
-
     if (!userId) {
       return NextResponse.json({ ok: false, error: "userId requerido" }, { status: 400 });
     }
@@ -91,12 +104,12 @@ export async function DELETE(req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "Equipo no encontrado" }, { status: 404 });
     }
 
-    if (team.captainId !== session.userId) {
-      return NextResponse.json({ ok: false, error: "Solo el capitán puede eliminar miembros" }, { status: 403 });
+    if (team.captainId !== session.userId && userId !== session.userId) {
+      return NextResponse.json({ ok: false, error: "No tienes permiso para esta acción" }, { status: 403 });
     }
 
     if (userId === team.captainId) {
-      return NextResponse.json({ ok: false, error: "No puedes eliminarte como capitán" }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "No puedes eliminar al capitán" }, { status: 400 });
     }
 
     await prisma.teamMember.delete({

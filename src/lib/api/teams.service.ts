@@ -16,6 +16,7 @@ export interface TeamMember {
   teamId: string;
   userId: string;
   joinedAt: string;
+  status: string;
   user: TeamMemberUser;
 }
 

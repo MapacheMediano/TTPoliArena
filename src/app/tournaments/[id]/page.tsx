@@ -140,7 +140,7 @@ export default function TournamentDetailPage() {
   const status = statusMap[tournament.status] ?? { label: tournament.status, color: '#9E9E9E' };
   const isAlreadyJoined = tournament.registrations.some(r => r.userId === userId);
   const isFull = tournament.registrations.length >= tournament.maxPlayers;
-  const isCaptain = userRole === 'CAPTAIN' || userRole === 'ADMIN';
+  const isCaptain = myTeams.length > 0;
 
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
