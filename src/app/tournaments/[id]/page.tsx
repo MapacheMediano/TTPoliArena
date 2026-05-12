@@ -100,8 +100,9 @@ export default function TournamentDetailPage() {
   }, [id, router]);
 
   const handleJoin = async () => {
-    setJoining(true);
-    setJoinError('');
+  setJoining(true);
+  setJoinError('');
+  
 
     // Validación para juegos de equipo
     if (isTeamGame && !selectedTeamId) {

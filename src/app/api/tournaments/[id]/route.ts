@@ -12,21 +12,22 @@ export async function GET(_req: Request, { params }: Params) {
       where: { id },
       include: {
         registrations: {
-          select: {
-            id: true,
-            userId: true,
-            createdAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                PlayerProfile: {
-                  select: { fullName: true, gamerTag: true, school: true },
-                },
-              },
-            },
-          },
+  select: {
+    id: true,
+    userId: true,
+    teamId: true,  // agrega esto
+    createdAt: true,
+    user: {
+      select: {
+        id: true,
+        email: true,
+        PlayerProfile: {
+          select: { fullName: true, gamerTag: true, school: true },
         },
+      },
+    },
+  },
+},
       },
     });
 
@@ -40,32 +41,33 @@ export async function GET(_req: Request, { params }: Params) {
     // Si es juego de equipo, busca el equipo de cada capitán inscrito
     let teamsInscribed: any[] = [];
     if (isTeamGame(tournament.game)) {
-      teamsInscribed = await prisma.team.findMany({
-        where: {
-          captainId: { in: tournament.registrations.map(r => r.userId) },
-          game: tournament.game,
-        },
-        include: {
-          captain: {
-            select: {
-              id: true,
-              email: true,
-              PlayerProfile: { select: { fullName: true, gamerTag: true } },
-            },
-          },
-          members: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  PlayerProfile: { select: { fullName: true, gamerTag: true } },
-                },
-              },
-            },
+      const teamIds = tournament.registrations
+  .map(r => (r as any).teamId)
+  .filter(Boolean);
+
+teamsInscribed = await prisma.team.findMany({
+  where: { id: { in: teamIds } },
+  include: {
+    captain: {
+      select: {
+        id: true,
+        email: true,
+        PlayerProfile: { select: { fullName: true, gamerTag: true } },
+      },
+    },
+    members: {
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            PlayerProfile: { select: { fullName: true, gamerTag: true } },
           },
         },
-      });
+      },
+    },
+  },
+});
     }
 
     return NextResponse.json({

@@ -69,10 +69,12 @@ model TournamentRegistration {
   id           String   @id @default(cuid())
   userId       String
   tournamentId String
+  teamId       String?
   createdAt    DateTime @default(now())
 
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         Team?      @relation(fields: [teamId], references: [id])
 
   @@unique([userId, tournamentId])
 }
@@ -89,6 +91,7 @@ model Team {
   matchesAsTeamA Match[] @relation("MatchTeamA")
   matchesAsTeamB Match[] @relation("MatchTeamB")
   matchesWon     Match[] @relation("MatchWinner")
+  tournamentRegistrations TournamentRegistration[]
 }
 
 model TeamMember {

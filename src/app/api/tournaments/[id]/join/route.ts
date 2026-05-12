@@ -14,6 +14,8 @@ export async function POST(req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "No autenticado" }, { status: 401 });
     }
 
+    const body = await req.json().catch(() => null);
+
     const tournament = await prisma.tournament.findUnique({
       where: { id },
       select: {
@@ -40,9 +42,9 @@ export async function POST(req: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: "El torneo ya está lleno" }, { status: 400 });
     }
 
-    // Si es juego de equipo — validar que sea capitán y tenga equipo del mismo juego
+    let selectedTeamId: string | null = null;
+
     if (isTeamGame(tournament.game)) {
-      const body = await req.json().catch(() => null);
       const teamId = body?.teamId as string | undefined;
 
       if (!teamId) {
@@ -52,7 +54,6 @@ export async function POST(req: Request, { params }: Params) {
         );
       }
 
-      // Verifica que el equipo existe y el usuario es capitán
       const team = await prisma.team.findUnique({
         where: { id: teamId },
         select: { id: true, captainId: true, game: true },
@@ -75,24 +76,39 @@ export async function POST(req: Request, { params }: Params) {
           { status: 400 }
         );
       }
-    }
 
-    // Verifica que el usuario no esté ya inscrito
-    const existing = await prisma.tournamentRegistration.findUnique({
-      where: {
-        userId_tournamentId: { userId: session.userId, tournamentId: id },
-      },
-    });
+      const captainAlreadyRegistered = await prisma.tournamentRegistration.findFirst({
+        where: { tournamentId: id, userId: session.userId },
+      });
 
-    if (existing) {
-      return NextResponse.json(
-        { ok: false, error: "Ya estás inscrito en este torneo" },
-        { status: 409 }
-      );
+      if (captainAlreadyRegistered) {
+        return NextResponse.json(
+          { ok: false, error: "Ya tienes un equipo inscrito en este torneo" },
+          { status: 409 }
+        );
+      }
+
+      selectedTeamId = teamId;
+
+    } else {
+      const existing = await prisma.tournamentRegistration.findUnique({
+        where: { userId_tournamentId: { userId: session.userId, tournamentId: id } },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          { ok: false, error: "Ya estás inscrito en este torneo" },
+          { status: 409 }
+        );
+      }
     }
 
     const registration = await prisma.tournamentRegistration.create({
-      data: { userId: session.userId, tournamentId: id },
+      data: {
+        userId: session.userId,
+        tournamentId: id,
+        teamId: selectedTeamId,
+      },
     });
 
     return NextResponse.json({ ok: true, registration }, { status: 201 });
