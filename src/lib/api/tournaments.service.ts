@@ -11,6 +11,7 @@ export interface CreateTournamentRequest {
   maxPlayers: number;
   startDate: string; // ISO string
   endDate?: string;  // ISO string
+  reglamentoUrl?: string;
 }
 
 export interface TournamentsResponse {

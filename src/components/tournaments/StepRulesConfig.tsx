@@ -16,10 +16,9 @@ import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import GroupsIcon from '@mui/icons-material/Groups';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PlaceIcon from '@mui/icons-material/Place';
-import GavelIcon from '@mui/icons-material/Gavel';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+
 
 // Formatos de torneo según tu documento sección 3.11
 const formatosTorneo = [
@@ -197,93 +196,27 @@ export default function StepRulesConfig({ formData, onChange, errors }: StepRule
         </Grid>
       </Grid>
 
-      {/* Reglamento PDF */}
-      <Typography variant="body2" sx={{ color: '#F5F0F2', mb: 1, fontWeight: 500 }}>
-        Reglamento del torneo (PDF)
-      </Typography>
-      <Box
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          border: `1px dashed ${errors.reglamentoPdf ? '#FF6B6B' : 'rgba(123, 30, 59, 0.4)'}`,
-          backgroundColor: 'rgba(26, 10, 16, 0.5)',
-          textAlign: 'center',
-          mb: 1,
-        }}
-      >
-        {formData.reglamentoPdf ? (
-          /* Archivo subido - mostrar info */
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            <PictureAsPdfIcon sx={{ fontSize: 40, color: '#FF6B6B' }} />
-            <Box sx={{ textAlign: 'left' }}>
-              <Typography variant="body2" sx={{ color: '#F5F0F2', fontWeight: 600 }}>
-                {formData.reglamentoPdf.name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {(formData.reglamentoPdf.size / 1024 / 1024).toFixed(2)} MB
-              </Typography>
-            </Box>
-            <Button
-              size="small"
-              onClick={() => onChange('reglamentoPdf', null as any)}
-              sx={{ color: '#FF6B6B', minWidth: 'auto' }}
-            >
-              Quitar
-            </Button>
-          </Box>
-        ) : (
-          /* Sin archivo - mostrar botón de subida */
-          <>
-            <UploadFileIcon sx={{ fontSize: 40, color: '#C4B0B8', mb: 1 }} />
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-              Sube el reglamento en formato PDF
-            </Typography>
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<GavelIcon />}
-              sx={{
-                borderColor: 'rgba(123, 30, 59, 0.5)',
-                color: '#F5F0F2',
-                '&:hover': {
-                  borderColor: '#7B1E3B',
-                  backgroundColor: 'rgba(123, 30, 59, 0.1)',
-                },
-              }}
-            >
-              Seleccionar PDF
-              <input
-                type="file"
-                accept=".pdf"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.type !== 'application/pdf') {
-                      alert('Solo se permiten archivos PDF');
-                      return;
-                    }
-                    if (file.size > 10 * 1024 * 1024) {
-                      alert('El archivo no debe superar los 10 MB');
-                      return;
-                    }
-                    onChange('reglamentoPdf', file as any);
-                  }
-                }}
-              />
-            </Button>
-          </>
-        )}
-      </Box>
-      {errors.reglamentoPdf && (
-        <Typography variant="caption" color="error" sx={{ ml: 1 }}>
-          {errors.reglamentoPdf}
-        </Typography>
-      )}
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 3, ml: 1 }}>
-        Máximo 10 MB. Los participantes podrán descargarlo desde la página del torneo.
-      </Typography>
-     
+      {/* Reglamento URL */}
+<Typography variant="body2" sx={{ color: '#F5F0F2', mb: 1, fontWeight: 500 }}>
+  URL del reglamento (PDF)
+</Typography>
+<TextField
+  fullWidth
+  label="Link del reglamento"
+  value={formData.reglamentoPdf as any ?? ''}
+  onChange={(e) => onChange('reglamentoPdf', e.target.value)}
+  placeholder="https://drive.google.com/... o cualquier link de descarga"
+  error={!!errors.reglamentoPdf}
+  helperText={errors.reglamentoPdf ?? 'Pega el link directo de descarga del PDF'}
+  sx={{ mb: 3 }}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <PictureAsPdfIcon sx={{ color: '#C4B0B8' }} />
+      </InputAdornment>
+    ),
+  }}
+/>
 
       {/* Premios */}
       <TextField

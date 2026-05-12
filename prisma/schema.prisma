@@ -63,6 +63,7 @@ model Tournament {
   updatedAt     DateTime                 @updatedAt
   registrations TournamentRegistration[]
   matches Match[]
+  reglamentoUrl String?
 }
 
 model TournamentRegistration {

@@ -18,6 +18,7 @@ import { getTournamentById, joinTournament } from '@/lib/api/tournaments.service
 import { getCurrentUser } from '@/lib/api/auth.service';
 import { getMyTeams } from '@/lib/api/teams.service';
 import type { TournamentDetailResponse, TeamInscribed } from '@/lib/api/tournaments.service';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import type { Team } from '@/lib/api/teams.service';
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -204,6 +205,22 @@ export default function TournamentDetailPage() {
                   </Typography>
                 </>
               )}
+              {tournament.reglamentoUrl && (
+  <Box sx={{ mt: 2 }}>
+    <Button
+      variant="outlined"
+      startIcon={<PictureAsPdfIcon />}
+      onClick={() => window.open(tournament.reglamentoUrl!, '_blank')}
+      sx={{
+        borderColor: '#FF6B6B',
+        color: '#FF6B6B',
+        '&:hover': { borderColor: '#CC4444', backgroundColor: 'rgba(255, 107, 107, 0.08)' },
+      }}
+    >
+      Ver reglamento
+    </Button>
+  </Box>
+)}
             </Paper>
 
             {/* Lista de inscritos */}

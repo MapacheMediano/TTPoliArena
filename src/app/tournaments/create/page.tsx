@@ -163,6 +163,7 @@ export default function CreateTournamentPage() {
       maxPlayers: formData.maxEquipos,
       startDate: new Date(formData.fechaInicio).toISOString(),
       endDate: formData.fechaFin ? new Date(formData.fechaFin).toISOString() : undefined,
+      reglamentoUrl: (formData.reglamentoPdf as any) || undefined,
     });
 
     if (!result.ok) {
@@ -171,10 +172,7 @@ export default function CreateTournamentPage() {
     }
 
     setShowSuccess(true);
-    setTimeout(() => {
-      router.push('/tournaments');
-    }, 2000);
-
+    setTimeout(() => router.push('/tournaments'), 2000);
   } catch (err) {
     setErrors({ general: 'Error de conexión. Intenta de nuevo.' });
   } finally {

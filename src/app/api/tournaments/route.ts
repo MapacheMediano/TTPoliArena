@@ -11,6 +11,7 @@ const CreateTournamentSchema = z.object({
   maxPlayers: z.number().int().positive("maxPlayers debe ser mayor a 0"),
   startDate: z.string().datetime("startDate debe ser una fecha ISO válida"),
   endDate: z.string().datetime().optional(),
+  reglamentoUrl: z.string().url().optional(),
 });
 
 export async function GET() {
@@ -86,6 +87,7 @@ export async function POST(req: Request) {
         maxPlayers: parsed.data.maxPlayers,
         startDate: new Date(parsed.data.startDate),
         endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+        reglamentoUrl: parsed.data.reglamentoUrl ?? null,
       },
     });
 
