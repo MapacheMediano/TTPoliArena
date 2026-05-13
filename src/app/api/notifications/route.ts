@@ -36,7 +36,7 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
 
-    recentMatches.forEach(m => {
+    recentMatches.forEach((m: any) => {
       const approved = m.status === "FINISHED";
       notifications.push({
         id: `result-${m.id}`,
