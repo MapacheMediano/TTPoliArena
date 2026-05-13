@@ -19,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ ok: true, rankings: [] });
     }
 
-    const rankings = teams.map((team) => {
+    const rankings = teams.map((team: any) => {
       const victorias = team._count.matchesWon;
       const totalPartidas = team._count.matchesAsTeamA + team._count.matchesAsTeamB;
       const derrotas = totalPartidas - victorias;
