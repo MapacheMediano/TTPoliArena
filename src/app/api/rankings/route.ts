@@ -39,8 +39,8 @@ export async function GET() {
     });
 
     // Ordena por puntos y asigna posiciones
-    rankings.sort((a, b) => b.puntos - a.puntos);
-    rankings.forEach((r, i) => { r.posicion = i + 1; });
+    rankings.sort((a: any, b: any) => b.puntos - a.puntos);
+    rankings.forEach((r: any, i: number) => { r.posicion = i + 1; });
 
     return NextResponse.json({ ok: true, rankings });
   } catch (error) {
