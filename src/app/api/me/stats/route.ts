@@ -14,7 +14,7 @@ export async function GET() {
       where: { captainId: session.userId },
       select: { id: true },
     });
-    const teamIds = myTeams.map(t => t.id);
+    const teamIds = myTeams.map((t: { id: string }) => t.id);
 
     // Torneos activos
     const torneosActivos = await prisma.tournamentRegistration.count({
