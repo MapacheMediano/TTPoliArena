@@ -64,7 +64,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    openTournaments.forEach(t => {
+    openTournaments.forEach((t: any) => {
       notifications.push({
         id: `tournament-${t.id}`,
         type: "NEW_TOURNAMENT",
@@ -115,7 +115,7 @@ export async function GET() {
         },
       });
 
-      pendingInvitations.forEach(inv => {
+      pendingInvitations.forEach((inv: any) => {
         const captainName = inv.team.captain.PlayerProfile?.gamerTag
           ?? inv.team.captain.PlayerProfile?.fullName
           ?? inv.team.captain.email.split('@')[0];
