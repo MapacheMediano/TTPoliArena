@@ -98,6 +98,7 @@ export interface TournamentFromAPI {
   status: string;
   createdAt: string;
   reglamentoUrl?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface MyTournamentsResponse {

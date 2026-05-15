@@ -12,6 +12,7 @@ const CreateTournamentSchema = z.object({
   startDate: z.string().datetime("startDate debe ser una fecha ISO válida"),
   endDate: z.string().datetime().optional(),
   reglamentoUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional(),
 });
 
 export async function GET() {
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         startDate: new Date(parsed.data.startDate),
         endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
         reglamentoUrl: parsed.data.reglamentoUrl ?? null,
+        imageUrl: parsed.data.imageUrl ?? null,
       },
     });
 

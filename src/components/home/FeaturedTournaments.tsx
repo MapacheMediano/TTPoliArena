@@ -43,6 +43,7 @@ export default function FeaturedTournaments() {
             equiposInscritos: t._count.registrations,
             maxEquipos: t.maxPlayers,
             modalidad: 'Online',
+            imagenUrl: t.imageUrl ?? null,
           })));
         }
       } catch (error) {

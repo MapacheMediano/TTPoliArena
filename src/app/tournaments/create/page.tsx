@@ -164,6 +164,7 @@ export default function CreateTournamentPage() {
       startDate: new Date(formData.fechaInicio).toISOString(),
       endDate: formData.fechaFin ? new Date(formData.fechaFin).toISOString() : undefined,
       reglamentoUrl: (formData.reglamentoPdf as any) || undefined,
+      imageUrl: formData.imagenUrl || undefined,
     });
 
     if (!result.ok) {

@@ -35,6 +35,7 @@ export async function GET() {
         endDate: true,
         status: true,
         createdAt: true,
+        imageUrl: true,
       },
     });
 

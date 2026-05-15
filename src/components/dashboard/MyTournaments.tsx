@@ -14,12 +14,14 @@ import TournamentCard, { TournamentData } from '@/components/TournamentCard';
 
 interface MyTournamentsProps {
   tournaments: TournamentData[];
+  title?: string;
   onViewAll?: () => void;
   onBrowseTournaments?: () => void;
-} 
+}
 
 export default function MyTournaments({
   tournaments,
+  title,
   onViewAll,
   onBrowseTournaments,
 }: MyTournamentsProps) {
@@ -43,7 +45,7 @@ export default function MyTournaments({
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2' }}>
-          Mis Torneos
+          {title ?? 'Mis Torneos'}
         </Typography>
         {tournaments.length > 0 && (
           <Button

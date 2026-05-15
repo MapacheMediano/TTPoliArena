@@ -42,6 +42,7 @@ export interface TournamentData {
   equiposInscritos: number;
   maxEquipos: number;
   modalidad: string;
+  imagenUrl?: string | null;
 }
 
 interface TournamentCardProps {
@@ -50,7 +51,7 @@ interface TournamentCardProps {
 }
 
 export default function TournamentCard({ tournament, onClick }: TournamentCardProps) {
-  const imageUrl = gameImages[tournament.juego] || 'https://picsum.photos/seed/default/400/200';
+  const imageUrl = tournament.imagenUrl || gameImages[tournament.juego] || 'https://picsum.photos/seed/default/400/200';
   const statusStyle = statusColors[tournament.estado] || statusColors['Próximamente'];
 
   return (

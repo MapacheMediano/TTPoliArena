@@ -22,7 +22,22 @@ function VerifyEmailContent() {
       setStatus('error');
       return;
     }
-    setStatus('error');
+
+    // Llama al API para verificar el token
+    async function verify() {
+      try {
+        const res = await fetch(`/api/auth/verify-email?token=${token}`);
+        if (res.ok || res.redirected) {
+          setStatus('success');
+        } else {
+          setStatus('error');
+        }
+      } catch {
+        setStatus('error');
+      }
+    }
+
+    verify();
   }, [token, verified]);
 
   return (
@@ -42,8 +57,8 @@ function VerifyEmailContent() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Tu correo ha sido verificado correctamente.
           </Typography>
-          <Button variant="contained" fullWidth onClick={() => router.push('/dashboard')}>
-            Ir al dashboard
+          <Button variant="contained" fullWidth onClick={() => router.push('/login')}>
+            Iniciar sesión
           </Button>
         </>
       )}

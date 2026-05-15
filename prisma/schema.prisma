@@ -64,6 +64,7 @@ model Tournament {
   registrations TournamentRegistration[]
   matches Match[]
   reglamentoUrl String?
+  imageUrl String?
 }
 
 model TournamentRegistration {

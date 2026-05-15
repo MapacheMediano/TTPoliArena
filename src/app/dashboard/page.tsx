@@ -13,6 +13,20 @@ import { getMyTeams } from '@/lib/api/teams.service';
 import { apiClient } from '@/lib/api/client';
 import type { Team } from '@/lib/api/teams.service';
 
+const statusMap: Record<string, string> = {
+  OPEN: 'Abierto',
+  IN_PROGRESS: 'En curso',
+  FINISHED: 'Finalizado',
+  UPCOMING: 'Próximamente',
+};
+
+const formatoMap: Record<string, string> = {
+  eliminacion_simple: 'Eliminación simple',
+  eliminacion_doble: 'Eliminación doble',
+  round_robin: 'Round Robin',
+  grupos: 'Fase de grupos',
+};
+
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -37,10 +51,7 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         const me = await getCurrentUser();
-        if (!me.user) {
-          router.push('/login');
-          return;
-        }
+        if (!me.user) { router.push('/login'); return; }
         setUserRole(me.user.role);
         setUserName(me.user.email.split('@')[0]);
         setCurrentUserId(me.user.id);
@@ -52,28 +63,17 @@ export default function DashboardPage() {
           apiClient<{ ok: boolean; stats: any }>('/api/me/stats'),
         ]);
 
-        if (statsRes.ok && statsRes.stats) {
-          setRealStats(statsRes.stats);
-        }
-
-        if (profileRes.ok && profileRes.user) {
-          setProfile(profileRes.user);
-        }
-
-        if (tournamentsRes.ok && tournamentsRes.tournaments) {
-          setTournaments(tournamentsRes.tournaments);
-        }
-
+        if (statsRes.ok && statsRes.stats) setRealStats(statsRes.stats);
+        if (profileRes.ok && profileRes.user) setProfile(profileRes.user);
+        if (tournamentsRes.ok && tournamentsRes.tournaments) setTournaments(tournamentsRes.tournaments);
         if (teamsRes.ok && teamsRes.teams) {
           setAllTeams(teamsRes.teams);
           if (teamsRes.teams.length > 0) {
-            const primaryTeam = teamsRes.teams.find(t => t.captainId === me.user!.id)
-              ?? teamsRes.teams[0];
+            const primaryTeam = teamsRes.teams.find(t => t.captainId === me.user!.id) ?? teamsRes.teams[0];
             setMyTeam(primaryTeam.name);
             setMyTeamData(primaryTeam);
           }
         }
-
       } catch (error) {
         console.error('Error cargando dashboard:', error);
         router.push('/login');
@@ -81,19 +81,12 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-
     loadDashboard();
   }, [router]);
 
   if (loading) {
     return (
-      <Box sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
-      }}>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
         <CircularProgress sx={{ color: '#D4A84B' }} />
       </Box>
     );
@@ -110,17 +103,22 @@ export default function DashboardPage() {
     equipo: myTeam,
   };
 
-  const tournamentsForCard = tournaments.map((t) => ({
+  const allTournamentsForCard = tournaments.map((t) => ({
     id: t.id,
     nombre: t.title,
     juego: t.game,
-    formato: t.format,
+    formato: formatoMap[t.format] ?? t.format,
     fechaInicio: new Date(t.startDate).toLocaleDateString('es-MX'),
-    estado: t.status,
+    estado: statusMap[t.status] ?? t.status,
     equiposInscritos: 0,
     maxEquipos: t.maxPlayers,
     modalidad: 'Online',
+    imagenUrl: t.imageUrl ?? null,
   }));
+
+  // Separa torneos activos de finalizados
+  const activeTournaments = allTournamentsForCard.filter(t => t.estado !== 'Finalizado');
+  const pastTournaments = allTournamentsForCard.filter(t => t.estado === 'Finalizado');
 
   const mockStats = {
     torneosActivos: realStats.torneosActivos,
@@ -143,10 +141,7 @@ export default function DashboardPage() {
   }));
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)',
-    }}>
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1A0A10 0%, #2A1520 50%, #1A0A10 100%)' }}>
       <Navbar isLoggedIn={true} userName={userForCard.nombre} role={userRole} />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -172,23 +167,27 @@ export default function DashboardPage() {
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <ProfileCard
-                user={userForCard}
-                onEditProfile={() => router.push('/profile')}
-              />
-              <MyTeam
-                teams={teamsForCard}
-                onCreateTeam={() => router.push('/teams')}
-              />
+              <ProfileCard user={userForCard} onEditProfile={() => router.push('/profile')} />
+              <MyTeam teams={teamsForCard} onCreateTeam={() => router.push('/teams')} />
             </Box>
           </Grid>
 
           <Grid size={{ xs: 12, md: 8 }}>
-            <MyTournaments
-              tournaments={tournamentsForCard}
-              onViewAll={() => router.push('/tournaments')}
-              onBrowseTournaments={() => router.push('/tournaments')}
-            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <MyTournaments
+                tournaments={activeTournaments}
+                onViewAll={() => router.push('/tournaments')}
+                onBrowseTournaments={() => router.push('/tournaments')}
+              />
+              {pastTournaments.length > 0 && (
+                <MyTournaments
+                  tournaments={pastTournaments}
+                  title="Torneos anteriores"
+                  onViewAll={() => router.push('/tournaments')}
+                  onBrowseTournaments={() => router.push('/tournaments')}
+                />
+              )}
+            </Box>
           </Grid>
         </Grid>
       </Container>

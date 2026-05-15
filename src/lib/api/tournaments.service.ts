@@ -12,6 +12,7 @@ export interface CreateTournamentRequest {
   startDate: string; // ISO string
   endDate?: string;  // ISO string
   reglamentoUrl?: string;
+  imageUrl?: string;
 }
 
 export interface TournamentsResponse {
