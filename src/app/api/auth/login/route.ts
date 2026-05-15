@@ -23,13 +23,16 @@ export async function POST(req: Request) {
   const email = parsed.data.email.trim().toLowerCase();
 
   const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, password: true, role: true, isActive: true },
-  });
+  where: { email },
+  select: { id: true, email: true, password: true, role: true, isActive: true, emailVerified: true },
+});
 
   if (!user || !user.isActive) {
-    return NextResponse.json({ ok: false, error: "Credenciales inválidas" }, { status: 401 });
-  }
+  return NextResponse.json({ ok: false, error: "Credenciales inválidas" }, { status: 401 });
+}
+if (!user.emailVerified) {
+  return NextResponse.json({ ok: false, error: "Debes verificar tu correo antes de iniciar sesión" }, { status: 403 });
+}
 
   const ok = await bcrypt.compare(parsed.data.password, user.password!);
 
