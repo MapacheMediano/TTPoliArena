@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
@@ -18,10 +18,7 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { ok: false, error: "Token inválido o expirado" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Token inválido o expirado" }, { status: 400 });
     }
 
     await prisma.user.update({
@@ -33,15 +30,9 @@ export async function GET(req: Request) {
       },
     });
 
-    // Redirige al login con mensaje de éxito
-    return NextResponse.redirect(
-      new URL("/login?verified=true", req.url)
-    );
+    return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("GET /api/auth/verify-email error:", error);
-    return NextResponse.json(
-      { ok: false, error: "Error interno del servidor" },
-      { status: 500 }
-    );
+    console.error("POST /api/auth/verify-email error:", error);
+    return NextResponse.json({ ok: false, error: "Error interno del servidor" }, { status: 500 });
   }
 }

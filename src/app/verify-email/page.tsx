@@ -1,9 +1,9 @@
 'use client';
-import { Suspense } from 'react';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Box, Container, Paper, Typography, CircularProgress, Button } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function VerifyEmailContent() {
@@ -11,42 +11,47 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const verified = searchParams.get('verified');
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'confirm' | 'loading' | 'success' | 'error'>('confirm');
 
   useEffect(() => {
-    if (verified === 'true') {
-      setStatus('success');
-      return;
-    }
-    if (!token) {
-      setStatus('error');
-      return;
-    }
-
-    // Llama al API para verificar el token
-    async function verify() {
-  try {
-    const res = await fetch(`/api/auth/verify-email?token=${token}`, {
-      redirect: 'manual',
-    });
-    // 307 redirect = verificación exitosa
-    if (res.status === 307 || res.status === 302 || res.status === 0) {
-      setStatus('success');
-    } else if (res.ok) {
-      setStatus('success');
-    } else {
-      setStatus('error');
-    }
-  } catch {
-    setStatus('error');
-  }
-}
-
-    verify();
+    if (verified === 'true') { setStatus('success'); return; }
+    if (!token) { setStatus('error'); return; }
+    setStatus('confirm');
   }, [token, verified]);
+
+  const handleConfirm = async () => {
+    setStatus('loading');
+    try {
+      const res = await fetch(`/api/auth/verify-email?token=${token}`, {
+        method: 'POST',
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
+  };
 
   return (
     <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)' }}>
+      {status === 'confirm' && (
+        <>
+          <MarkEmailReadIcon sx={{ fontSize: 64, color: '#D4A84B', mb: 2 }} />
+          <Typography variant="h5" sx={{ color: '#F5F0F2', fontWeight: 700, mb: 1 }}>
+            Verificar cuenta
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Haz click en el botón para confirmar tu correo y activar tu cuenta.
+          </Typography>
+          <Button variant="contained" fullWidth onClick={handleConfirm} size="large">
+            Confirmar verificación
+          </Button>
+        </>
+      )}
       {status === 'loading' && (
         <>
           <CircularProgress sx={{ color: '#D4A84B', mb: 2 }} />
