@@ -27,16 +27,18 @@ function VerifyEmailContent() {
     async function verify() {
   try {
     const res = await fetch(`/api/auth/verify-email?token=${token}`, {
-      redirect: 'follow',
+      redirect: 'manual',
     });
-    // Si hubo redirect o respuesta ok, fue exitoso
-    if (res.ok || res.redirected || res.status === 307) {
+    // 307 redirect = verificación exitosa
+    if (res.status === 307 || res.status === 302 || res.status === 0) {
+      setStatus('success');
+    } else if (res.ok) {
       setStatus('success');
     } else {
       setStatus('error');
     }
   } catch {
-    setStatus('success'); // Si hay error de red por redirect, asumir éxito
+    setStatus('error');
   }
 }
 
