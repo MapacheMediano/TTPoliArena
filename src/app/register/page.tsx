@@ -94,7 +94,7 @@ export default function RegisterPage() {
     }
 
     // Registro exitoso — va directo al dashboard
-    router.push('/dashboard');
+    router.push('/login?pendingVerification=true');
 
   } catch (err) {
     setError('Error de conexión. Intenta de nuevo.');
