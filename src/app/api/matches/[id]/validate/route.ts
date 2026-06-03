@@ -94,32 +94,33 @@ export async function POST(req: Request, { params }: Params) {
       }
 
       // 3 — Si es eliminación doble y el partido es del Winners bracket
-      // el perdedor baja al Losers bracket ronda 1
-      if (match.bracket === "WINNERS" && loserId) {
-        const loserPosition = Math.ceil(match.position / 2);
+// el perdedor baja al Losers bracket en la ronda correspondiente
+if (match.bracket === "WINNERS" && loserId) {
+  const loserRound = match.round;
+  const loserPosition = Math.ceil(match.position / 2);
 
-        const loserMatch = await prisma.match.findFirst({
-          where: {
-            tournamentId: match.tournamentId,
-            bracket: "LOSERS",
-            round: 1,
-            position: loserPosition,
-          },
-        });
+  const loserMatch = await prisma.match.findFirst({
+    where: {
+      tournamentId: match.tournamentId,
+      bracket: "LOSERS",
+      round: loserRound,
+      position: loserPosition,
+    },
+  });
 
-        console.log(`Partido losers encontrado: ${loserMatch?.id ?? 'ninguno'} (pos ${loserPosition})`);
+  console.log(`Partido losers encontrado: ${loserMatch?.id ?? 'ninguno'} (ronda ${loserRound}, pos ${loserPosition})`);
 
-        if (loserMatch) {
-          const slotA = !loserMatch.teamAId;
-          await prisma.match.update({
-            where: { id: loserMatch.id },
-            data: slotA
-              ? { teamA: { connect: { id: loserId } } }
-              : { teamB: { connect: { id: loserId } } },
-          });
-          console.log(`Perdedor colocado en slot ${slotA ? 'A' : 'B'} del partido losers ${loserMatch.id}`);
-        }
-      }
+  if (loserMatch) {
+    const slotA = !loserMatch.teamAId;
+    await prisma.match.update({
+      where: { id: loserMatch.id },
+      data: slotA
+        ? { teamA: { connect: { id: loserId } } }
+        : { teamB: { connect: { id: loserId } } },
+    });
+    console.log(`Perdedor colocado en slot ${slotA ? 'A' : 'B'} del partido losers ${loserMatch.id}`);
+  }
+}
 
       // 4 — Si el partido es del Losers bracket, el ganador avanza en Losers
       // ya está cubierto por el paso 2 (mismo bracket)

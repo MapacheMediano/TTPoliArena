@@ -77,31 +77,36 @@ export async function GET() {
     }
 
     // Torneos ganados — el equipo del usuario ganó la última partida del torneo
-    const torneosFinalizados = await prisma.tournament.findMany({
-      where: {
-        status: { in: ["FINISHED", "IN_PROGRESS"] },
-        registrations: { some: { userId: session.userId } },
+const torneosFinalizados = await prisma.tournament.findMany({
+  where: {
+    status: "FINISHED",
+    registrations: { some: { userId: session.userId } },
+  },
+  select: {
+    id: true,
+    format: true,
+    matches: {
+      where: { 
+        status: "FINISHED",
+        bracket: { in: ["WINNERS", "GRAND_FINAL"] }
       },
-      select: {
-        id: true,
-        format: true,
-        matches: {
-          where: { status: "FINISHED" },
-          orderBy: { round: "desc" },
-          take: 1,
-          select: { winnerId: true, bracket: true },
-        },
-      },
-    });
+      orderBy: [
+        { bracket: "desc" },
+        { round: "desc" },
+      ],
+      take: 1,
+      select: { winnerId: true, bracket: true },
+    },
+  },
+});
 
-    let torneosGanados = 0;
-    for (const torneo of torneosFinalizados) {
-      const ultimaPartida = torneo.matches[0];
-      if (ultimaPartida?.winnerId && teamIds.includes(ultimaPartida.winnerId)) {
-        torneosGanados++;
-      }
-    }
-
+let torneosGanados = 0;
+for (const torneo of torneosFinalizados) {
+  const ultimaPartida = torneo.matches[0];
+  if (ultimaPartida?.winnerId && teamIds.includes(ultimaPartida.winnerId)) {
+    torneosGanados++;
+  }
+}
     return NextResponse.json({
       ok: true,
       stats: {
