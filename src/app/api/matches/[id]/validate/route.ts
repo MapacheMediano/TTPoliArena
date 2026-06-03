@@ -82,15 +82,15 @@ export async function POST(req: Request, { params }: Params) {
 
       console.log(`Siguiente partido ganador: ${nextWinnerMatch?.id ?? 'ninguno'} (ronda ${nextWinnerRound}, pos ${nextWinnerPosition})`);
 
-      if (nextWinnerMatch && winnerId) {
-        const isSlotA = match.position % 2 === 1;
+     if (nextWinnerMatch && winnerId) {
+        const slotA = !nextWinnerMatch.teamAId;
         await prisma.match.update({
           where: { id: nextWinnerMatch.id },
-          data: isSlotA
+          data: slotA
             ? { teamA: { connect: { id: winnerId } } }
             : { teamB: { connect: { id: winnerId } } },
         });
-        console.log(`Ganador colocado en slot ${isSlotA ? 'A' : 'B'} del partido ${nextWinnerMatch.id}`);
+        console.log(`Ganador colocado en slot ${slotA ? 'A' : 'B'} del partido ${nextWinnerMatch.id}`);
       }
 
       // 3 — Si es eliminación doble y el partido es del Winners bracket
