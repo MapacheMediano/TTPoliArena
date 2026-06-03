@@ -36,6 +36,7 @@ export async function GET() {
         status: true,
         createdAt: true,
         imageUrl: true,
+        _count: { select: { registrations: true } },
         registrations: {
         where: { userId: session.userId },
         select: {

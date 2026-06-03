@@ -99,7 +99,7 @@ export default function DashboardPage() {
     unidadAcademica: profile?.PlayerProfile?.school ?? 'Sin unidad académica',
     rol: profile?.role ?? 'PLAYER',
     torneosJugados: tournaments.length,
-    torneosGanados: 0,
+    torneosGanados: realStats.torneosGanados ?? 0,
     equipo: myTeam,
   };
 
