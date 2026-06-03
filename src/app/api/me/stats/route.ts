@@ -79,7 +79,7 @@ export async function GET() {
     // Torneos ganados — el equipo del usuario ganó la última partida del torneo
     const torneosFinalizados = await prisma.tournament.findMany({
       where: {
-        status: "FINISHED",
+        status: { in: ["FINISHED", "IN_PROGRESS"] },
         registrations: { some: { userId: session.userId } },
       },
       select: {

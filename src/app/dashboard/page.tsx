@@ -110,7 +110,7 @@ export default function DashboardPage() {
     formato: formatoMap[t.format] ?? t.format,
     fechaInicio: new Date(t.startDate).toLocaleDateString('es-MX'),
     estado: statusMap[t.status] ?? t.status,
-    equiposInscritos: 0,
+    equiposInscritos: t._count?.registrations ?? 0,
     maxEquipos: t.maxPlayers,
     modalidad: 'Online',
     imagenUrl: t.imageUrl ?? null,

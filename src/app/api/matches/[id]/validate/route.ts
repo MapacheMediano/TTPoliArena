@@ -174,6 +174,23 @@ export async function POST(req: Request, { params }: Params) {
         });
         console.log(`Torneo finalizado. Campeón: ${winnerId}`);
       }
+      // 8 — Si es eliminación simple y no hay siguiente partido, el ganador es campeón
+if (match.bracket === "WINNERS" && !nextWinnerMatch && winnerId) {
+  const grandFinal = await prisma.match.findFirst({
+    where: {
+      tournamentId: match.tournamentId,
+      bracket: "GRAND_FINAL",
+    },
+  });
+
+  if (!grandFinal) {
+    await prisma.tournament.update({
+      where: { id: match.tournamentId },
+      data: { status: "FINISHED" },
+    });
+    console.log(`Torneo de eliminación simple finalizado. Campeón: ${winnerId}`);
+  }
+}
 
     } else {
       // REJECT — regresa a PENDING

@@ -7,7 +7,6 @@ import {
   Avatar,
   Chip,
   Button,
-  LinearProgress,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SchoolIcon from '@mui/icons-material/School';
@@ -138,31 +137,6 @@ export default function ProfileCard({ user, onEditProfile }: ProfileCardProps) {
             Equipo
           </Typography>
         </Box>
-      </Box>
-
-      {/* Nivel / Progreso (decorativo) */}
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="caption" color="text.secondary">
-            Nivel de experiencia
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#D4A84B' }}>
-            {user.torneosJugados * 120} XP
-          </Typography>
-        </Box>
-        <LinearProgress
-          variant="determinate"
-          value={Math.min((user.torneosJugados / 10) * 100, 100)}
-          sx={{
-            height: 6,
-            borderRadius: 3,
-            backgroundColor: 'rgba(123, 30, 59, 0.2)',
-            '& .MuiLinearProgress-bar': {
-              borderRadius: 3,
-              background: 'linear-gradient(90deg, #7B1E3B, #D4A84B)',
-            },
-          }}
-        />
       </Box>
 
       {/* Botón editar */}
