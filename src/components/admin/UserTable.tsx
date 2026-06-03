@@ -25,11 +25,6 @@ const rolColors: Record<string, { bg: string; text: string }> = {
   'ADMIN':   { bg: 'rgba(255, 107, 107, 0.15)', text: '#FF6B6B' },
 };
 
-const estadoColors: Record<string, { bg: string; text: string }> = {
-  'Activo': { bg: 'rgba(76, 175, 80, 0.15)', text: '#4CAF50' },
-  'Suspendido': { bg: 'rgba(255, 107, 107, 0.15)', text: '#FF6B6B' },
-  'Inactivo': { bg: 'rgba(158, 158, 158, 0.15)', text: '#9E9E9E' },
-};
 
 interface UserTableProps {
   users: UserData[];
@@ -93,7 +88,6 @@ export default function UserTable({
         {users.length > 0 ? (
           users.map((user) => {
             const rolStyle = rolColors[user.rol] || rolColors['Jugador'];
-            const estadoStyle = estadoColors[user.estado] || estadoColors['Activo'];
             const iniciales = user.nombre
               .split(' ')
               .map((n) => n[0])
@@ -173,17 +167,6 @@ export default function UserTable({
                   }}
                 />
 
-                {/* Estado */}
-                <Chip
-                  label={user.estado}
-                  size="small"
-                  sx={{
-                    backgroundColor: estadoStyle.bg,
-                    color: estadoStyle.text,
-                    fontWeight: 600,
-                    fontSize: '0.7rem',
-                  }}
-                />
 
                 {/* Acciones */}
                 <Box sx={{ display: 'flex', gap: 0.5 }}>

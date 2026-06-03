@@ -36,7 +36,16 @@ export async function GET() {
         status: true,
         createdAt: true,
         imageUrl: true,
-      },
+        registrations: {
+        where: { userId: session.userId },
+        select: {
+        teamId: true,
+        team: {
+        select: { name: true, tag: true }
+      }
+    }
+  }
+},
     });
 
     return NextResponse.json({

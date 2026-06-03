@@ -99,6 +99,7 @@ export interface TournamentFromAPI {
   createdAt: string;
   reglamentoUrl?: string | null;
   imageUrl?: string | null;
+  _count?: { registrations: number };
 }
 
 export interface MyTournamentsResponse {

@@ -48,18 +48,30 @@ export default function Navbar({ isLoggedIn = false, userName = '', role = '' }:
   const notifOpen = Boolean(notifAnchorEl);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
-    async function loadNotifications() {
-      try {
-        const res = await fetch('/api/notifications', { credentials: 'include' });
-        const data = await res.json();
-        if (data.ok) setNotifications(data.notifications ?? []);
-      } catch (error) {
-        console.error('Error cargando notificaciones:', error);
+  if (!isLoggedIn) return;
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/notifications', { credentials: 'include' });
+      const data = await res.json();
+      if (data.ok) {
+        const newNotifs: Notification[] = data.notifications ?? [];
+        setNotifications(newNotifs);
+        // Limpia readIds que ya no existen en las notificaciones actuales
+        setReadIds(prev => {
+          const currentIds = new Set(newNotifs.map(n => n.id));
+          const updated = new Set([...prev].filter(id => currentIds.has(id)));
+          localStorage.setItem('poliarena_read_notifs', JSON.stringify([...updated]));
+          return updated;
+        });
       }
+    } catch (error) {
+      console.error('Error cargando notificaciones:', error);
     }
-    loadNotifications();
-  }, [isLoggedIn]);
+  }
+  loadNotifications();
+  const interval = setInterval(loadNotifications, 30000);
+  return () => clearInterval(interval);
+}, [isLoggedIn]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);

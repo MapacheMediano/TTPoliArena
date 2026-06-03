@@ -44,7 +44,7 @@ function mapTournament(t: TournamentFromAPI): TournamentData {
     formato: formatoMap[t.format] ?? t.format,
     fechaInicio: new Date(t.startDate).toLocaleDateString('es-MX'),
     estado: statusMap[t.status] ?? t.status,
-    equiposInscritos: 0,
+    equiposInscritos: (t as any)._count?.registrations ?? 0,
     maxEquipos: t.maxPlayers,
     modalidad: 'Online',
     imagenUrl: t.imageUrl ?? null,

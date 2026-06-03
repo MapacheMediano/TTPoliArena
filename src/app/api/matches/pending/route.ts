@@ -29,6 +29,7 @@ export async function GET() {
             id: true,
             email: true,
             PlayerProfile: { select: { fullName: true, gamerTag: true } },
+          captainOf: { select: { id: true, name: true } },
           },
         },
       },

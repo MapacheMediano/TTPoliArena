@@ -8,7 +8,6 @@ import {
   Chip,
   Button,
   Divider,
-  LinearProgress,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SchoolIcon from '@mui/icons-material/School';
@@ -201,30 +200,6 @@ export default function ProfileView({ user, onEdit }: ProfileViewProps) {
           </Box>
         </Box>
 
-        {/* Barra de experiencia */}
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="body2" sx={{ color: '#F5F0F2', fontWeight: 500 }}>
-              Nivel {Math.floor(user.torneosJugados / 3) + 1}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#D4A84B' }}>
-              {user.torneosJugados * 120} / {(Math.floor(user.torneosJugados / 3) + 1) * 500} XP
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={Math.min(((user.torneosJugados * 120) % 500) / 5, 100)}
-            sx={{
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: 'rgba(123, 30, 59, 0.2)',
-              '& .MuiLinearProgress-bar': {
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #7B1E3B, #D4A84B)',
-              },
-            }}
-          />
-        </Box>
 
         <Divider sx={{ borderColor: 'rgba(123, 30, 59, 0.2)', mb: 2 }} />
 

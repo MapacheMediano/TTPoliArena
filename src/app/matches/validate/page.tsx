@@ -55,7 +55,9 @@ export default function ValidateResultsPage() {
             scoreA: m.scoreA ?? 0,
             scoreB: m.scoreB ?? 0,
             reportadoPor: m.reporter?.PlayerProfile?.gamerTag ?? m.reporter?.email?.split('@')[0] ?? 'Desconocido',
-            reportadoEquipo: m.teamA?.name ?? '',
+            reportadoEquipo: m.reporter?.captainOf?.find((t: any) => 
+            t.id === m.teamAId || t.id === m.teamBId
+            )?.name ?? m.teamA?.name ?? '',
             comentario: '',
             screenshotUrls: m.evidenceUrl ? [m.evidenceUrl] : [],
             fechaReporte: new Date(m.updatedAt).toLocaleDateString('es-MX'),

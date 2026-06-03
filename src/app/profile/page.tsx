@@ -65,13 +65,13 @@ export default function ProfilePage() {
         });
 
         // Mapea torneos al historial
-        const historial = (tournamentsRes.tournaments ?? []).map((t) => ({
+        const historial = (tournamentsRes.tournaments ?? []).map((t: any) => ({
           id: t.id,
           nombre: t.title,
           juego: t.game,
           fecha: new Date(t.startDate).toLocaleDateString('es-MX'),
           posicion: 'Participante',
-          equipo: 'Sin equipo',
+          equipo: t.registrations?.[0]?.team?.name ?? 'Individual',
         }));
         setHistory(historial);
 

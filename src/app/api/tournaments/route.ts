@@ -19,7 +19,10 @@ export async function GET() {
   try {
     const tournaments = await prisma.tournament.findMany({
       orderBy: { createdAt: "desc" },
-    });
+    include: {
+    _count: { select: { registrations: true } },
+  },
+});
 
     // Actualiza status automáticamente según fechas
     const now = new Date();
