@@ -69,7 +69,9 @@ export async function POST(req: Request, { params }: Params) {
 
       // 2 — Avanza ganador al siguiente partido del mismo bracket
       const nextWinnerRound = match.round + 1;
-      const nextWinnerPosition = Math.ceil(match.position / 2);
+      const nextWinnerPosition = match.bracket === "LOSERS"
+        ? match.position
+        : Math.ceil(match.position / 2);
 
       const nextWinnerMatch = await prisma.match.findFirst({
         where: {
