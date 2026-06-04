@@ -274,9 +274,11 @@ export async function POST(_req: Request, { params }: Params) {
           const wRounds = Math.log2(slots);
 
           if (match.round === 1) {
-            // Perdedores de W ronda 1 → L ronda 1, misma posición
-            const loserMatch = findMatch("LOSERS", 1, match.position);
-            if (loserMatch) nextLoserMatchId = loserMatch.id;
+          // Perdedores de W ronda 1 → L ronda 1
+          // pos 1,2 → L pos 1; pos 3,4 → L pos 2; etc.
+          const loserPos = Math.ceil(match.position / 2);
+          const loserMatch = findMatch("LOSERS", 1, loserPos);
+          if (loserMatch) nextLoserMatchId = loserMatch.id;
           } else if (match.round < wRounds) {
             // Perdedores de W ronda N → L ronda N*2-2
             const loserRound = match.round * 2 - 2;
