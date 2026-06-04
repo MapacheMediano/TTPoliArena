@@ -125,6 +125,8 @@ model Match {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   playedAt     DateTime?
+  nextWinnerMatchId String?
+  nextLoserMatchId  String?
 
   tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   teamA        Team?       @relation("MatchTeamA", fields: [teamAId], references: [id])
