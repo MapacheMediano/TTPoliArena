@@ -4,7 +4,6 @@ import { Paper, Typography, Box } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import GroupsIcon from '@mui/icons-material/Groups';
 
 interface QuickStatsProps {
   stats: {
@@ -35,12 +34,6 @@ export default function QuickStats({ stats }: QuickStatsProps) {
       icon: <TrendingUpIcon />,
       color: '#4CAF50',
     },
-    {
-      label: 'Mejor racha',
-      value: `${stats.racha}W`,
-      icon: <GroupsIcon />,
-      color: '#2196F3',
-    },
   ];
 
   return (
@@ -48,8 +41,8 @@ export default function QuickStats({ stats }: QuickStatsProps) {
       sx={{
         display: 'grid',
         gridTemplateColumns: {
-          xs: 'repeat(2, 1fr)',
-          md: 'repeat(4, 1fr)',
+          xs: 'repeat(3, 1fr)',
+          md: 'repeat(3, 1fr)',
         },
         gap: 2,
       }}

@@ -125,6 +125,21 @@ export async function POST(req: Request, { params }: Params) {
           }
         }
       }
+      // Verificar si el torneo debe finalizar
+const pendingMatches = await prisma.match.count({
+  where: {
+    tournamentId: match.tournamentId,
+    status: { in: ["PENDING", "REPORTED"] },
+  },
+});
+
+if (pendingMatches === 0) {
+  await prisma.tournament.update({
+    where: { id: match.tournamentId },
+    data: { status: "FINISHED" },
+  });
+  console.log(`Torneo ${match.tournamentId} finalizado - todos los partidos completados`);
+}
 
     } else {
       // REJECT — regresa a PENDING
