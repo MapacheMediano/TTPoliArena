@@ -249,7 +249,7 @@ export default function RegisterPage() {
               }}
             />
 
-            <TextField
+            {/* <TextField
               fullWidth
               label="Nickname (opcional - para moderadores)"
               name="nickname"
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-            />
+            /> */}
 
             <Button
               type="submit"
