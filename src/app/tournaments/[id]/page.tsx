@@ -49,6 +49,7 @@ export default function TournamentDetailPage() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
   const [joinSuccess, setJoinSuccess] = useState(false);
+  const [reglamentoVisto, setReglamentoVisto] = useState(false);
   const [userId, setUserId] = useState('');
   const [userRole, setUserRole] = useState('');
   const [userName, setUserName] = useState('');
@@ -210,12 +211,15 @@ export default function TournamentDetailPage() {
     <Button
       variant="outlined"
       startIcon={<PictureAsPdfIcon />}
-      onClick={() => window.open(tournament.reglamentoUrl!, '_blank')}
+      onClick={() => {
+  window.open(tournament.reglamentoUrl!, '_blank');
+  setReglamentoVisto(true);
+}}
       sx={{
-        borderColor: '#FF6B6B',
-        color: '#FF6B6B',
-        '&:hover': { borderColor: '#CC4444', backgroundColor: 'rgba(255, 107, 107, 0.08)' },
-      }}
+  borderColor: reglamentoVisto ? '#4CAF50' : '#FF6B6B',
+  color: reglamentoVisto ? '#4CAF50' : '#FF6B6B',
+  '&:hover': { borderColor: reglamentoVisto ? '#2E7D32' : '#CC4444', backgroundColor: reglamentoVisto ? 'rgba(76, 175, 80, 0.08)' : 'rgba(255, 107, 107, 0.08)' },
+}}
     >
       Ver reglamento
     </Button>
@@ -362,7 +366,8 @@ export default function TournamentDetailPage() {
                 disabled={
                   joining || isAlreadyJoined || isFull ||
                   tournament.status !== 'OPEN' || joinSuccess ||
-                  (isTeamGame && myTeams.length === 0)
+                  (isTeamGame && myTeams.length === 0) ||
+(!!tournament.reglamentoUrl && !reglamentoVisto)
                 }
                 sx={{ py: 1.5, fontWeight: 700 }}
               >

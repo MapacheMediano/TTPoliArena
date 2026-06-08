@@ -20,7 +20,6 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
-import BadgeIcon from '@mui/icons-material/Badge';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import Navbar from '@/components/Navbar';
 import { registerUser } from '@/lib/api/auth.service';
@@ -34,7 +33,6 @@ export default function RegisterPage() {
     correo: '',
     password: '',
     confirmPassword: '',
-    nickname: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -248,22 +246,6 @@ export default function RegisterPage() {
                 ),
               }}
             />
-
-            {/* <TextField
-              fullWidth
-              label="Nickname (opcional - para moderadores)"
-              name="nickname"
-              value={formData.nickname}
-              onChange={handleChange}
-              sx={{ mb: 3 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <BadgeIcon sx={{ color: '#C4B0B8' }} />
-                  </InputAdornment>
-                ),
-              }}
-            /> */}
 
             <Button
               type="submit"

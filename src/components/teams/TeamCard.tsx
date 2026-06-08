@@ -131,33 +131,33 @@ export default function TeamCard({ team, onClick }: TeamCardProps) {
       </Box>
 
       {/* Stats */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 2,
-          p: 1.5,
-          borderRadius: 1.5,
-          backgroundColor: 'rgba(26, 10, 16, 0.5)',
-          mt: 'auto',
-        }}
-      >
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="body1" sx={{ fontWeight: 700, color: '#D4A84B' }}>
-            {team.torneosActivos}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Activos
-          </Typography>
-        </Box>
-        <Box sx={{ textAlign: 'center', flex: 1 }}>
-          <Typography variant="body1" sx={{ fontWeight: 700, color: '#4CAF50' }}>
-            {team.torneosGanados}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Ganados
-          </Typography>
-        </Box>
-      </Box>
+<Box
+  sx={{
+    display: 'flex',
+    gap: 2,
+    p: 1.5,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(26, 10, 16, 0.5)',
+    mt: 'auto',
+  }}
+>
+  <Box sx={{ textAlign: 'center', flex: 1 }}>
+    <Typography variant="body1" sx={{ fontWeight: 700, color: '#2196F3' }}>
+      {team.miembros.length}
+    </Typography>
+    <Typography variant="caption" color="text.secondary">
+      Integrantes
+    </Typography>
+  </Box>
+  <Box sx={{ textAlign: 'center', flex: 1 }}>
+    <Typography variant="body1" sx={{ fontWeight: 700, color: '#4CAF50' }}>
+      {team.torneosGanados}
+    </Typography>
+    <Typography variant="caption" color="text.secondary">
+      Ganados
+    </Typography>
+  </Box>
+</Box>
     </Paper>
   );
 }
