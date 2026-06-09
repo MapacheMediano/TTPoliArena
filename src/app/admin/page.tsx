@@ -173,7 +173,7 @@ export default function AdminPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <AdminPanelSettingsIcon sx={{ fontSize: 32, color: '#D4A84B' }} />
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#F5F0F2' }}>
-              Panel de Administracion
+              Panel de Administración
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary">
