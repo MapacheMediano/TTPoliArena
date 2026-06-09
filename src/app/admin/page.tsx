@@ -177,7 +177,7 @@ export default function AdminPage() {
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary">
-            Gestiona usuarios, roles y configuracion del sistema
+            Gestiona usuarios, roles y configuración del sistema
           </Typography>
         </Box>
 
@@ -219,7 +219,7 @@ export default function AdminPage() {
 
         <Paper elevation={0} sx={{ p: 3, backgroundColor: 'rgba(42, 21, 32, 0.8)', border: '1px solid rgba(123, 30, 59, 0.3)' }}>
           <Typography variant="h6" sx={{ fontWeight: 700, color: '#F5F0F2', mb: 3 }}>
-            Gestion de usuarios
+            Gestión de usuarios
           </Typography>
           <UserTable
             users={filteredUsers}
